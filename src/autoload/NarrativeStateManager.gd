@@ -26,12 +26,19 @@ func _ready() -> void:
 	_load_endings_data()
 
 func _load_endings_data() -> void:
-	if not  ResourceLoader.exists(ENDINGS_PATH):
+	if not  FileAccess.file_exists(ENDINGS_PATH):
 		push_error("NarrativeStateManager: endings.json not found at %s" % ENDINGS_PATH)
 		return
-	var res := load(ENDINGS_PATH) as Dictionary
-	if res == null:
-		push_error("NarrativeStateManager: failed to load %s" % ENDINGS_PATH)
+	# load() on a .json returns a JSON Resource, not a Dictionary — parse text.
+	var f := FileAccess.open(ENDINGS_PATH, FileAccess.READ)
+	if f == null:
+		push_error("NarrativeStateManager: cannot open %s" % ENDINGS_PATH)
+		return
+	var raw := f.get_as_text()
+	f.close()
+	var res: Variant = JSON.parse_string(raw)
+	if typeof(res) != TYPE_DICTIONARY:
+		push_error("NarrativeStateManager: endings.json did not parse to a Dictionary")
 		return
 	_endings_data = res.get("endings", [])
 

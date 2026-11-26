@@ -4,6 +4,7 @@
 extends Control
 
 const DEV_FOOTER: String = "Developed & Created by Tarun Loganathan"
+const GAMEPLAY_SCENE: String = "res://src/levels/Act1Level.tscn"
 
 @onready var _footer_label: Label = $FooterLabel if has_node("FooterLabel") else null
 @onready var _continue_button: Button = $ContinueButton if has_node("ContinueButton") else null
@@ -29,13 +30,14 @@ func _refresh_continue_button() -> void:
 
 func _on_new_game_pressed() -> void:
 	GameState.save_to_slot(0, "New Game")
-	get_tree().change_scene_to_file("res://src/ui/SplashScreen.tscn")
+	get_tree().change_scene_to_file(GAMEPLAY_SCENE)
 
 func _on_continue_pressed() -> void:
 	for i in GameState.SAVE_SLOTS:
 		if not  GameState.is_slot_empty(i):
 			GameState.load_from_slot(i)
-			break
+			get_tree().change_scene_to_file(GAMEPLAY_SCENE)
+			return
 
 func _on_gunsmith_pressed() -> void:
 	get_tree().change_scene_to_file("res://src/ui/GunsmithUI.tscn")

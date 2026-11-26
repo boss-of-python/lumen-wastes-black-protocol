@@ -12,7 +12,7 @@ const TARGET_FPS: int = 60
 
 @onready var _left_stick: TouchScreenRect = $LeftStick if has_node("LeftStick") else null
 @onready var _right_stick: TouchScreenRect = $RightStick if has_node("RightStick") else null
-@onready var _radial: RadialSlider = $QuickSpellRadial if has_node("QuickSpellRadial") else null
+@onready var _radial: Control = $QuickSpellRadial if has_node("QuickSpellRadial") else null
 @onready var _top_strip: Control = $TopStrip if has_node("TopStrip") else null
 
 var _left_vector := Vector2.ZERO

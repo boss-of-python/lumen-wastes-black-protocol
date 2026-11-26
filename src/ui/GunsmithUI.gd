@@ -16,16 +16,27 @@ var _weapons: Dictionary = {}
 var _weapon_ids: Array[String] = []
 
 func _ready() -> void:
-	_combat = get_node_or_null("/root/CombatController")
+	# CombatController is not an autoload singleton; fetch the active instance
+	# via the "combat_controller" group (set by CombatController._ready).
+	_combat = get_tree().get_first_node_in_group("combat_controller") as CombatController
 	_load_weapons()
 	_build_attachment_slots()
 
 func _load_weapons() -> void:
-	if not  ResourceLoader.exists(WEAPON_LIST_PATH):
+	if not  FileAccess.file_exists(WEAPON_LIST_PATH):
 		push_error("GunsmithUI: weapons.json missing at %s" % WEAPON_LIST_PATH)
 		return
-	var data: Variant = load(WEAPON_LIST_PATH)
+	# In Godot 4, load() on a .json returns a JSON Resource (TYPE_OBJECT),
+	# not a Dictionary. Parse the raw text with JSON.parse_string instead.
+	var f := FileAccess.open(WEAPON_LIST_PATH, FileAccess.READ)
+	if f == null:
+		push_error("GunsmithUI: cannot open %s" % WEAPON_LIST_PATH)
+		return
+	var raw := f.get_as_text()
+	f.close()
+	var data: Variant = JSON.parse_string(raw)
 	if typeof(data) != TYPE_DICTIONARY:
+		push_error("GunsmithUI: weapons.json did not parse to a Dictionary")
 		return
 	var weapons: Array = data.get("weapons", [])
 	for w in weapons:

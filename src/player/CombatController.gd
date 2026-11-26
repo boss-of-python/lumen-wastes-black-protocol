@@ -60,14 +60,23 @@ signal spell_cast(spell_name: String)
 signal transformation_activated(name: String)
 
 func _ready() -> void:
+	add_to_group("combat_controller")
 	_load_weapons()
 
 func _load_weapons() -> void:
-	if not  ResourceLoader.exists(WEAPONS_PATH):
+	if not  FileAccess.file_exists(WEAPONS_PATH):
 		push_error("CombatController: weapons.json missing at %s" % WEAPONS_PATH)
 		return
-	var data: Variant = load(WEAPONS_PATH)
+	# load() on a .json returns a JSON Resource, not a Dictionary — parse text.
+	var f := FileAccess.open(WEAPONS_PATH, FileAccess.READ)
+	if f == null:
+		push_error("CombatController: cannot open %s" % WEAPONS_PATH)
+		return
+	var raw := f.get_as_text()
+	f.close()
+	var data: Variant = JSON.parse_string(raw)
 	if typeof(data) != TYPE_DICTIONARY:
+		push_error("CombatController: weapons.json did not parse to a Dictionary")
 		return
 	var weapons: Array = data.get("weapons", [])
 	for w in weapons:

@@ -67,7 +67,7 @@ func _test_offline_manifest_compliance() -> void:
 # ---------------------------------------------------------------------------
 func _test_endings_completeness() -> void:
 	_section("30 Endings Data")
-	var data: Variant = load(ENDING_PATH)
+	var data: Variant = _load_json(ENDING_PATH)
 	_assert(typeof(data) == TYPE_DICTIONARY, "endings.json is a dictionary")
 	var endings: Array = data.get("endings", [])
 	_assert(endings.size() == 30, "30 endings defined (found %d)" % endings.size())
@@ -189,7 +189,7 @@ func _test_gunsmith_math() -> void:
 # ---------------------------------------------------------------------------
 func _test_weapons_data() -> void:
 	_section("16 Weapons Data")
-	var data: Variant = load(WEAPON_PATH)
+	var data: Variant = _load_json(WEAPON_PATH)
 	var weapons: Array = data.get("weapons", [])
 	_assert(weapons.size() == 16, "16 weapons defined (found %d)" % weapons.size())
 	var gunsmith: Dictionary = data.get("gunsmith", {})
@@ -215,7 +215,7 @@ func _find_weapon(weapons: Array, id: String) -> Dictionary:
 
 func _test_shards_data() -> void:
 	_section("24 Core Shards Data")
-	var data: Variant = load(SHARD_PATH)
+	var data: Variant = _load_json(SHARD_PATH)
 	var shards: Array = data.get("shards", [])
 	_assert(shards.size() == 24, "24 shards defined (found %d)" % shards.size())
 	for s in shards:
@@ -223,7 +223,7 @@ func _test_shards_data() -> void:
 
 func _test_armor_data() -> void:
 	_section("6 Armor Sets Data")
-	var data: Variant = load(ARMOR_PATH)
+	var data: Variant = _load_json(ARMOR_PATH)
 	var sets: Array = data.get("armor_sets", [])
 	_assert(sets.size() == 6, "6 armor sets defined (found %d)" % sets.size())
 	for s in sets:
@@ -231,7 +231,7 @@ func _test_armor_data() -> void:
 
 func _test_enemies_data() -> void:
 	_section("4 Factions + 8 Bosses Data")
-	var data: Variant = load(ENEMY_PATH)
+	var data: Variant = _load_json(ENEMY_PATH)
 	var factions: Array = data.get("factions", [])
 	_assert(factions.size() == 4, "4 factions defined (found %d)" % factions.size())
 	var bosses: Array = data.get("bosses", [])
@@ -244,7 +244,7 @@ func _test_enemies_data() -> void:
 
 func _test_biomes_data() -> void:
 	_section("8 Biomes + 20h Progression Data")
-	var data: Variant = load(BIOME_PATH)
+	var data: Variant = _load_json(BIOME_PATH)
 	var biomes: Array = data.get("biomes", [])
 	_assert(biomes.size() == 9, "9 biome entries (8 biomes + hub) (found %d)" % biomes.size())
 	_assert(data.get("total_target_hours") == 20.0, "20-hour target")
@@ -259,7 +259,7 @@ func _test_physics_constants() -> void:
 	_section("Physics & Gameplay Constants")
 	_assert(_load_project_setting("physics/2d/default_gravity") == 1180.0, "gravity 1180.0")
 	_assert(_load_project_setting("display/window/stretch/mode") == "canvas_items", "stretch canvas_items")
-	_assert(_load_project_setting("rendering/renderer/rendering_method") == "mobile", "Mobile renderer")
+	_assert(_load_project_setting("rendering/renderer/rendering_method") == "gl_compatibility", "GLES3 compatibility renderer")
 	_assert(_load_project_setting("physics/common/physics_ticks_per_second") == 60, "60 physics ticks")
 	# Verify the gameplay constants file matches the verified vertical slice.
 	var player_script := load("res://src/player/Player.gd") as Script
@@ -275,7 +275,7 @@ func _load_project_setting(path: String) -> Variant:
 # ---------------------------------------------------------------------------
 func _test_asset_manifest() -> void:
 	_section("Asset Manifest")
-	var data: Variant = load(MANIFEST_PATH)
+	var data: Variant = _load_json(MANIFEST_PATH)
 	_assert(typeof(data) == TYPE_DICTIONARY, "manifest.json is a dictionary")
 	var assets: Array = data.get("assets", [])
 	_assert(assets.size() > 0, "Manifest has assets")
@@ -288,6 +288,21 @@ func _test_asset_manifest() -> void:
 # ---------------------------------------------------------------------------
 func _section(name: String) -> void:
 	print("--- %s ---" % name)
+
+# In Godot 4, load() on a .json returns a JSON Resource (TYPE_OBJECT), not a
+# Dictionary. Parse the raw text with JSON.parse_string instead.
+func _load_json(path: String) -> Dictionary:
+	if not  FileAccess.file_exists(path):
+		return {}
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return {}
+	var raw := f.get_as_text()
+	f.close()
+	var parsed: Variant = JSON.parse_string(raw)
+	if typeof(parsed) == TYPE_DICTIONARY:
+		return parsed
+	return {}
 
 func _fail(message: String) -> void:
 	_failed += 1

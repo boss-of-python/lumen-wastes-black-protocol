@@ -39,10 +39,15 @@ func _ready() -> void:
 	_load_boss_data()
 
 func _load_boss_data() -> void:
-	if not  ResourceLoader.exists("res://data/enemies.json"):
+	if not  FileAccess.file_exists("res://data/enemies.json"):
 		push_error("BossBase: enemies.json missing")
 		return
-	var data: Variant = load("res://data/enemies.json")
+	var f := FileAccess.open("res://data/enemies.json", FileAccess.READ)
+	if f == null:
+		return
+	var raw := f.get_as_text()
+	f.close()
+	var data: Variant = JSON.parse_string(raw)
 	if typeof(data) != TYPE_DICTIONARY:
 		return
 	var bosses: Array = data.get("bosses", [])
