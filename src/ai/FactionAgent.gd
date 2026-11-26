@@ -1,8 +1,4 @@
 # FactionAgent.gd
-# 100% Offline 4-Faction live infighting AI.
-# Deterministic state machine: each faction agent detects the player and
-# enemies of rival factions, engages, and fights them in real time —
-# no network, no cloud, no random cloud APIs.
 extends CharacterBody2D
 
 const DETECT_RADIUS: float = 320.0
@@ -30,6 +26,8 @@ var _stun_timer: float = 0.0
 var _fire_cooldown: float = 0.0
 var _wander_target: Vector2 = Vector2.ZERO
 var _aggro_factions: Array[String] = []
+var detection_radius: float = DETECT_RADIUS
+var facing: int = 1
 
 signal state_changed(new_state: int)
 
@@ -39,23 +37,21 @@ func _ready() -> void:
 	_load_faction_config()
 
 func _load_faction_config() -> void:
-	if not  FileAccess.file_exists("res://data/enemies.json"):
+	if not FileAccess.file_exists("res://data/enemies.json"):
 		return
 	var f := FileAccess.open("res://data/enemies.json", FileAccess.READ)
 	if f == null:
 		return
-	var raw := f.get_as_text()
+	var data: Variant = JSON.parse_string(f.get_as_text())
 	f.close()
-	var data: Variant = JSON.parse_string(raw)
 	if typeof(data) != TYPE_DICTIONARY:
 		return
-	var factions: Array = data.get("factions", [])
-	for fct in factions:
+	for fct in data.get("factions", []):
 		if fct["id"] == faction:
 			hp = float(fct.get("hp", max_hp))
 			damage = float(fct.get("damage", damage))
 			move_speed = float(fct.get("speed", move_speed))
-			detection_radius := float(fct.get("detection_radius", DETECT_RADIUS))
+			detection_radius = float(fct.get("detection_radius", DETECT_RADIUS))
 			firing_range = float(fct.get("attack_range", firing_range))
 			for aggro in fct.get("aggro_faction", []):
 				_aggro_factions.append(aggro)
@@ -71,15 +67,10 @@ func _update_timers(delta: float) -> void:
 	_stun_timer = max(0.0, _stun_timer - delta)
 
 func _update_ai(delta: float) -> void:
-	if state == STATE_STAGGER:
+	if state == STATE_STAGGER or state == STATE_STUNNED:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
-	if state == STATE_STUNNED:
-		velocity = Vector2.ZERO
-		move_and_slide()
-		return
-
 	_detect_targets()
 	if _target != null:
 		_chase_or_attack(delta)
@@ -90,38 +81,30 @@ func _detect_targets() -> void:
 	var best_target: Node = null
 	var best_score: float = -1.0
 	var tree := get_tree()
-
-	# Player is always a valid target.
 	var player := tree.get_first_node_in_group("player")
 	if player != null:
 		var dist_p := global_position.distance_to(player.global_position)
-		if dist_p <= DETECT_RADIUS:
+		if dist_p <= detection_radius:
 			best_target = player
-			best_score = 2.0 - dist_p / DETECT_RADIUS
-
-	# Rival faction agents are valid targets (offline infighting).
+			best_score = 2.0 - dist_p / detection_radius
 	for node in tree.get_nodes_in_group("enemy"):
-		if node == self or not  node.is_inside_tree():
+		if node == self or not node.is_inside_tree():
 			continue
-		var other_faction: String = node.get("faction") if node.has_method("get") else ""
-		if not  _is_rival(other_faction):
+		var other_faction: String = node.get("faction") if node.get("faction") != null else ""
+		if not _is_rival(other_faction):
 			continue
 		var dist := global_position.distance_to(node.global_position)
-		if dist <= DETECT_RADIUS:
-			var score := 1.0 - dist / DETECT_RADIUS
+		if dist <= detection_radius:
+			var score := 1.0 - dist / detection_radius
 			if score > best_score:
 				best_score = score
 				best_target = node
-
 	_target = best_target
-	if (best_target != null and state != STATE_CHASE and state != STATE_ATTACK) \
-			or (best_target == null and (state == STATE_CHASE or state == STATE_ATTACK)):
+	if (best_target != null and state != STATE_CHASE and state != STATE_ATTACK) or (best_target == null and (state == STATE_CHASE or state == STATE_ATTACK)):
 		_change_state(STATE_CHASE if best_target != null else STATE_PATROL)
 
 func _is_rival(other_faction: String) -> bool:
-	if other_faction == faction:
-		return false
-	return other_faction in _aggro_factions
+	return other_faction != faction and other_faction in _aggro_factions
 
 func _chase_or_attack(delta: float) -> void:
 	if _target == null:
@@ -152,13 +135,10 @@ func _patrol(delta: float) -> void:
 	_change_state(STATE_PATROL)
 	var dist := global_position.distance_to(_wander_target)
 	if dist < 12.0:
-		_wander_target = global_position + Vector2(
-			randf_range(-WANDER_RADIUS, WANDER_RADIUS),
-			randf_range(-WANDER_RADIUS / 2.0, WANDER_RADIUS / 2.0))
-	var dir := (_wander_target - global_position)
+		_wander_target = global_position + Vector2(randf_range(-WANDER_RADIUS, WANDER_RADIUS), randf_range(-WANDER_RADIUS / 2.0, WANDER_RADIUS / 2.0))
+	var dir := _wander_target - global_position
 	if dir.length() > 1.0:
-		dir = dir.normalized()
-		velocity = dir * move_speed * 0.6
+		velocity = dir.normalized() * move_speed * 0.6
 	move_and_slide()
 
 func _change_state(new_state: int) -> void:
@@ -167,9 +147,6 @@ func _change_state(new_state: int) -> void:
 	state = new_state
 	state_changed.emit(state)
 
-# ---------------------------------------------------------------------------
-# Combat interface
-# ---------------------------------------------------------------------------
 func take_damage(amount: float) -> void:
 	hp -= amount
 	if hp <= 0.0:
@@ -188,9 +165,8 @@ func apply_bash_launch(direction: Vector2) -> void:
 	stagger(0.8)
 
 func die() -> void:
-	if not  is_inside_tree():
-		return
-	queue_free()
+	if is_inside_tree():
+		queue_free()
 
 func get_faction() -> String:
 	return faction

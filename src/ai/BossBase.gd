@@ -1,7 +1,4 @@
 # BossBase.gd
-# Multi-phase telegraphed bosses with armor shearing and bashable rockets.
-# Loads boss definitions from data/enemies.json; phases advance as HP
-# crosses thresholds, unlocking new attack patterns per phase.
 extends CharacterBody2D
 
 const TELEGRAPH_WINDUP: float = 0.8
@@ -28,6 +25,7 @@ var _telegraph_timer: float = 0.0
 var _current_attack: String = ""
 var _stun_timer: float = 0.0
 var _rockets_bashable: bool = false
+var facing: int = 1
 
 signal phase_changed(phase: int)
 signal boss_defeated()
@@ -39,19 +37,17 @@ func _ready() -> void:
 	_load_boss_data()
 
 func _load_boss_data() -> void:
-	if not  FileAccess.file_exists("res://data/enemies.json"):
+	if not FileAccess.file_exists("res://data/enemies.json"):
 		push_error("BossBase: enemies.json missing")
 		return
 	var f := FileAccess.open("res://data/enemies.json", FileAccess.READ)
 	if f == null:
 		return
-	var raw := f.get_as_text()
+	var data: Variant = JSON.parse_string(f.get_as_text())
 	f.close()
-	var data: Variant = JSON.parse_string(raw)
 	if typeof(data) != TYPE_DICTIONARY:
 		return
-	var bosses: Array = data.get("bosses", [])
-	for b in bosses:
+	for b in data.get("bosses", []):
 		if b["id"] == boss_id:
 			boss_data = b
 			max_hp = float(b.get("hp", 1000.0))
@@ -75,18 +71,14 @@ func _update_state(delta: float) -> void:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
-
 	if _state == PHASE_STATE_TELEGRAPH:
 		if _telegraph_timer <= 0.0:
 			_execute_attack()
 		return
-
 	if _state == PHASE_STATE_ATTACK:
 		if _attack_timer <= 0.0:
 			_change_state(PHASE_STATE_IDLE)
 		return
-
-	# Idle: pick the next attack and telegraph it.
 	if _attack_timer <= 0.0:
 		_begin_telegraph()
 
@@ -94,7 +86,7 @@ func _begin_telegraph() -> void:
 	var attacks: Array = boss_data.get("attacks", [])
 	if attacks.is_empty():
 		return
-	_current_attack = attacks[randi() % attacks.size()]
+	_current_attack = attacks[randi() % attacks.size()] 
 	_telegraph_timer = TELEGRAPH_WINDUP
 	_change_state(PHASE_STATE_TELEGRAPH)
 
@@ -108,11 +100,9 @@ func _execute_attack() -> void:
 			_summon_minions("mutants", 2)
 		"charge_rush", "drill_charge", "flame_dash":
 			velocity = Vector2(facing * 480.0, 0.0)
-		_:
-			pass
 
 func _spawn_rockets(count: int) -> void:
-	if not  _rockets_bashable:
+	if not _rockets_bashable:
 		return
 	for i in count:
 		var rocket := _make_rocket()
@@ -122,21 +112,21 @@ func _spawn_rockets(count: int) -> void:
 			rocket.set_velocity(Vector2(facing * ROCKET_SPEED, 120.0))
 
 func _make_rocket() -> Node:
-	var rocket := preload("res://src/physics/BossRocket.tscn") as PackedScene
-	if rocket == null:
+	var rocket_scene := load("res://src/physics/BossRocket.tscn") as PackedScene
+	if rocket_scene == null:
 		return null
-	var instance := rocket.instantiate() as Area2D
+	var instance := rocket_scene.instantiate() as Area2D
 	instance.set("speed", ROCKET_SPEED)
 	instance.set("bash_damage", BASH_ROCKET_DAMAGE)
 	instance.add_to_group("boss_rocket")
 	return instance
 
 func _summon_minions(faction: String, count: int) -> void:
+	var agent_scene := load("res://src/ai/FactionAgent.tscn") as PackedScene
+	if agent_scene == null:
+		return
 	for i in count:
-		var minion := preload("res://src/ai/FactionAgent.tscn") as PackedScene
-		if minion == null:
-			continue
-		var agent := minion.instantiate() as CharacterBody2D
+		var agent := agent_scene.instantiate() as CharacterBody2D
 		agent.faction = faction
 		agent.max_hp = hp * 0.1
 		agent.hp = agent.max_hp
@@ -148,13 +138,9 @@ func _change_state(new_state: int) -> void:
 		return
 	_state = new_state
 
-# ---------------------------------------------------------------------------
-# Phase progression
-# ---------------------------------------------------------------------------
 func take_damage(amount: float) -> void:
 	var effective := amount
 	if armor_integrity > 0.0:
-		# Armor shearing: armor absorbs a fraction until sheared.
 		var shear := amount * ARMOR_SHEAR_PER_HIT
 		armor_integrity = max(0.0, armor_integrity - shear)
 		effective = amount * (1.0 - armor_integrity)
@@ -169,13 +155,6 @@ func _check_phase_progression() -> void:
 	if new_phase != current_phase and new_phase >= 1 and new_phase <= max_phases:
 		current_phase = new_phase
 		phase_changed.emit(current_phase)
-		_apply_phase_unlock()
-
-func _apply_phase_unlock() -> void:
-	var unlock_key := "phase_%d_unlock" % current_phase
-	var unlock := boss_data.get(unlock_key, "")
-	if current_phase == max_phases:
-		boss_enraged.emit()
 
 func apply_bash_launch(direction: Vector2) -> void:
 	velocity = direction * 400.0

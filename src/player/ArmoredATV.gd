@@ -1,6 +1,4 @@
 # ArmoredATV.gd
-# RigidBody2D + WheelJoint2D vehicle with boost and roof turret.
-# Drives along the Rust Highway / Orbital Elevator Shaft sequences.
 extends RigidBody2D
 
 const WHEEL_RADIUS: float = 22.0
@@ -40,45 +38,34 @@ func _physics_process(delta: float) -> void:
 	_update_boost_bar()
 
 func _regen_boost(delta: float) -> void:
-	if not  _is_boosting:
+	if not _is_boosting:
 		boost_charge = min(BOOST_MAX, boost_charge + BOOST_REGEN * delta)
 
 func _handle_drive(delta: float) -> void:
 	var throttle: float = Input.get_axis("move_left", "move_right")
 	var turn: float = Input.get_axis("move_left", "move_right")
 	var want_boost := Input.is_action_pressed("vehicle_boost") and boost_charge > 1.0
-
-	if want_boost and boost_charge > 1.0:
+	if want_boost:
 		_is_boosting = true
 		boost_charge = max(0.0, boost_charge - BOOST_DRAIN * delta)
 	else:
 		_is_boosting = false
-
 	var force := ENGINE_FORCE
 	if _is_boosting:
 		force = BOOST_FORCE
-
-	# Apply engine force along the chassis forward vector.
-	var forward := -global_transform.basis.get_column(0)
+	var forward := global_transform.x.normalized()
 	if forward.x < 0.0:
 		forward = -forward
-	var drive_force := forward * force * throttle * delta
-	apply_central_force(drive_force)
-
-	# Wheel torque for visual spin.
+	apply_central_force(forward * force * throttle * delta)
 	if _front_wheel != null:
 		_front_wheel.apply_torque(throttle * force * WHEEL_RADIUS * delta)
 	if _rear_wheel != null:
 		_rear_wheel.apply_torque(throttle * force * WHEEL_RADIUS * delta)
-
-	# Steering torque on the chassis.
 	if _is_boosting:
 		turn *= 0.8
 	apply_torque(-turn * TURN_TORQUE * delta)
-
-	# Cap speed.
-	if global_velocity.length() > MAX_SPEED:
-		global_velocity = global_velocity.normalized() * MAX_SPEED
+	if linear_velocity.length() > MAX_SPEED:
+		linear_velocity = linear_velocity.normalized() * MAX_SPEED
 
 func _update_boost_bar() -> void:
 	if _boost_bar != null:
@@ -96,7 +83,6 @@ func aim_turret(world_point: Vector2) -> void:
 		_turret.rotation = angle
 
 func take_damage(amount: float) -> void:
-	# ATV has no HP in the reference; damage applies to the player instead.
 	var player := get_tree().get_first_node_in_group("player")
 	if player != null and player.has_method("take_damage"):
 		player.take_damage(amount * 0.5)
