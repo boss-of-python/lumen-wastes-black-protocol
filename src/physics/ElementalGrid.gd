@@ -34,7 +34,7 @@ func _on_enter_body(body: Node) -> void:
 		_dissolve_grate_above(body)
 	if _ignited and element == Element.OIL:
 		if body.has_method("take_damage"):
-			body.take_damage(BURN_DAMAGE * burn_rate)
+			body.call("take_damage", BURN_DAMAGE * burn_rate)
 
 func _on_body_entered(body: Node) -> void:
 	# Water + EMP interaction: any EMP source electrifies the pool.
@@ -66,7 +66,7 @@ func _chain_stun(source: Node) -> void:
 	for node in tree.get_nodes_in_group("enemy"):
 		if global_position.distance_to(node.global_position) <= CHAIN_STUN_RADIUS:
 			if node.has_method("stun"):
-				node.stun(CHAIN_STUN_DURATION)
+				node.call("stun", CHAIN_STUN_DURATION)
 				stunned.append(node)
 	chain_stunned.emit(stunned)
 	if AudioDirector != null:
@@ -79,5 +79,5 @@ func _dissolve_grate_above(_body: Node) -> void:
 		if node.global_position.y >= global_position.y - 80.0 \
 				and abs(node.global_position.x - global_position.x) <= 40.0:
 			if node.has_method("take_damage"):
-				node.take_damage(ACID_DISSOLVE_DAMAGE)
+				node.call("take_damage", ACID_DISSOLVE_DAMAGE)
 				grate_dissolved.emit(node)

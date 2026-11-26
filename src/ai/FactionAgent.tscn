@@ -15,8 +15,8 @@ damage = 12.0
 move_speed = 95.0
 
 [node name="Sprite" type="Sprite2D" parent="."]
-offset_right = 32.0
-offset_bottom = 32.0
+centered = true
+offset = Vector2(0, 0)
 
 [node name="Hitbox" type="Area2D" parent="."]
 collision_layer = 2

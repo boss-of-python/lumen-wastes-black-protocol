@@ -65,25 +65,32 @@ func switch_stem(stem_name: String, fade_time: float = 1.2) -> void:
 	if new_stream == null:
 		return
 	_fade_active = true
+	# Fade out the old stem, then fade in the new one.
 	if old_stream != null:
-		_fade_stream(old_stream, fade_time, -80.0, true)
-	_fade_stream(new_stream, fade_time, -14.0, false)
+		_fade_stream(old_stream, fade_time, true)
+	_fade_stream(new_stream, fade_time, false)
 	_current_stem = stem_name
 	stem_changed.emit(stem_name)
 
-func _fade_stream(stream: AudioStreamWAV, fade_time: float, target_db: float, is_old: bool) -> void:
+func _fade_stream(stream: AudioStreamWAV, fade_time: float, is_old: bool) -> void:
 	if stream == null:
 		return
 	var player := AudioStreamPlayer.new()
 	player.stream = stream
 	player.bus = "Music"
-	player.volume_db = 0.0 if not is_old else -14.0
 	add_child(player)
+	# Old stems fade from normal volume down to silence; new stems fade
+	# from silence up to normal volume.
+	var start_db: float = -14.0 if is_old else -80.0
+	var end_db: float = -80.0 if is_old else -14.0
+	player.volume_db = start_db
 	player.play()
 	var tween := create_tween()
-	var start_db: float = -14.0 if is_old else 0.0
-	tween.tween_property(player, "volume_db", target_db, fade_time)
-	tween.tween_callback(player.queue_free)
+	tween.set_parallel(false)
+	tween.tween_method(
+		func(v: float) -> void: player.volume_db = v,
+		start_db, end_db, fade_time)
+	tween.tween_callback(func() -> void: player.queue_free())
 
 func get_current_stem() -> String:
 	return _current_stem
@@ -92,7 +99,7 @@ func stop_all_music(fade_time: float = 0.4) -> void:
 	for stem_name in _stems:
 		var stream := _stems[stem_name] as AudioStreamWAV
 		if stream != null:
-			_fade_stream(stream, fade_time, -80.0, false)
+			_fade_stream(stream, fade_time, true)
 
 func play_sfx(sfx_type: String, pitch_variation: float = 0.0) -> void:
 	var player := _get_free_sfx()
@@ -144,9 +151,12 @@ func _synthesize_sfx(sfx_type: String) -> AudioStreamWAV:
 		else:
 			phase += 2.0 * PI * freq / float(sr)
 			val = sin(phase) * amp
-		var sample := clampi(int(val * 24000.0), -32768, 32767)
-		buf[i * 2] = sample & 0xFF
-		buf[i * 2 + 1] = (sample >> 8) & 0xFF
+		var s := clamp(int(val * 24000.0), -32768, 32767)
+		# 16-bit little-endian PCM. pack_half() is Godot 3 only; build the
+		# two bytes directly from the signed 16-bit sample.
+		var u: int = s & 0xFFFF
+		buf[i * 2] = (u >> 8) & 0xFF
+		buf[i * 2 + 1] = u & 0xFF
 	stream.data = buf
 	stream.format = AudioStreamWAV.FORMAT_16_BITS
 	stream.mix_rate = sr

@@ -33,6 +33,8 @@ func _process(_delta: float) -> void:
 		var device := 0
 		_left_vector = _clamp_stick(Vector2(Input.get_joy_axis(device, JOY_AXIS_LEFT_X), Input.get_joy_axis(device, JOY_AXIS_LEFT_Y)))
 		_right_vector = _clamp_stick(Vector2(Input.get_joy_axis(device, JOY_AXIS_RIGHT_X), Input.get_joy_axis(device, JOY_AXIS_RIGHT_Y)))
+	else:
+		_read_touch_vectors()
 	move_vector_changed.emit(_left_vector)
 	aim_vector_changed.emit(_right_vector)
 

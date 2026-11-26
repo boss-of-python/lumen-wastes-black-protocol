@@ -45,6 +45,7 @@ var _on_wall_right: bool = false
 var _wall_slide_timer: float = 0.0
 var _scarf_pos := Vector2.ZERO
 var _scarf_vel := Vector2.ZERO
+var _velocity_locked: bool = false
 
 signal air_jump_reset()
 signal dash_executed()
@@ -81,6 +82,7 @@ func _update_timers(delta: float) -> void:
 	_coyote_timer = max(0.0, _coyote_timer - delta)
 	_jump_buffer_timer = max(0.0, _jump_buffer_timer - delta)
 	_dash_cooldown = max(0.0, _dash_cooldown - delta)
+	_dash_timer = max(0.0, _dash_timer - delta)
 	_wall_slide_timer = max(0.0, _wall_slide_timer - delta)
 
 func _update_i_frames(delta: float) -> void:
@@ -109,13 +111,15 @@ func _handle_input(delta: float) -> void:
 func _handle_movement(delta: float) -> void:
 	var input_x := _get_input_x()
 
-	# Horizontal acceleration.
-	var target_speed := MAX_RUN_SPEED_TITAN if is_titan_form else MAX_RUN_SPEED
-	if input_x != 0.0:
-		_facing = 1 if input_x > 0.0 else -1
-		_velocity.x = _approach(_velocity.x, input_x * target_speed, 2400.0 * delta)
-	else:
-		_velocity.x = _approach(_velocity.x, 0.0, 2000.0 * delta)
+	# Horizontal acceleration — skipped while an external system (dash,
+	# bash launch, grapple zip) has locked the velocity.
+	if not  _velocity_locked:
+		var target_speed := MAX_RUN_SPEED_TITAN if is_titan_form else MAX_RUN_SPEED
+		if input_x != 0.0:
+			_facing = 1 if input_x > 0.0 else -1
+			_velocity.x = _approach(_velocity.x, input_x * target_speed, 2400.0 * delta)
+		else:
+			_velocity.x = _approach(_velocity.x, 0.0, 2000.0 * delta)
 
 	# Wall detection.
 	_update_wall_state()
@@ -153,6 +157,9 @@ func _handle_movement(delta: float) -> void:
 	# Commit velocity.
 	velocity = _velocity
 	move_and_slide()
+	# Release the velocity lock once the dash is over so normal input resumes.
+	if not  _is_dashing():
+		_velocity_locked = false
 
 func _get_input_x() -> float:
 	var x := 0.0
@@ -181,8 +188,14 @@ func _start_dash() -> void:
 	_dash_timer = PHASE_DASH_DURATION
 	_iframes = PHASE_DASH_IFRAMES
 	_dash_cooldown = PHASE_DASH_COOLDOWN
-	_velocity = Vector2(_facing * PHASE_DASH_SPEED, _velocity.y)
+	set_velocity(Vector2(_facing * PHASE_DASH_SPEED, _velocity.y))
 	dash_executed.emit()
+
+# Public: set velocity and lock it so _handle_movement won't overwrite it
+# this frame (used by dash, Kinetic Bash launch, and Grapple zip).
+func set_velocity(vel: Vector2) -> void:
+	_velocity = vel
+	_velocity_locked = true
 
 # ---------------------------------------------------------------------------
 # Ability reset (mid-air melee hit, bash, grapple)
@@ -220,6 +233,9 @@ func _wall_query(offset: Vector2) -> bool:
 	ray.collision_mask = ~PHYSICS_LAYER_PLAYER
 	ray.disabled = false
 	add_child(ray)
+	# A RayCast2D needs at least one physics tick to process after being
+	# added to the tree; force an immediate update before querying.
+	ray.force_raycast_update()
 	var hit := ray.is_colliding()
 	ray.queue_free()
 	return hit

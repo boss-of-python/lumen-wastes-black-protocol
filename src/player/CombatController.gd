@@ -16,7 +16,8 @@ const FINISHER_HEAL := 20.0
 const FINISHER_STAGGER_HP_THRESHOLD := 0.25
 const TRANSFORMATIONS: Array[String] = ["stone_colossus", "scorch_wolf_exo", "thunder_loong", "frost_wraith", "blight_stalker", "cinder_seraph"]
 
-@export var player: Node2D
+@export var player: CharacterBody2D = null
+
 var _weapons: Dictionary = {}
 var _attachment_definitions: Dictionary = {}
 var _weapon_order: Array[String] = []
