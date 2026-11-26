@@ -9,6 +9,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_menu")
 
 [node name="NewGameButton" type="Button" parent="."]
 layout_mode = 2
@@ -61,5 +62,14 @@ grow_vertical = 2
 horizontal_alignment = 1
 text = "Developed & Created by Tarun Loganathan"
 
-[node name="script" type="Script" parent="."]
-script = ExtResource("1_menu")
+[connection signal="pressed" from="NewGameButton" to="."]
+method = "_on_new_game_pressed"
+
+[connection signal="pressed" from="ContinueButton" to="."]
+method = "_on_continue_pressed"
+
+[connection signal="pressed" from="GunsmithButton" to="."]
+method = "_on_gunsmith_pressed"
+
+[connection signal="pressed" from="CodexButton" to="."]
+method = "_on_codex_pressed"

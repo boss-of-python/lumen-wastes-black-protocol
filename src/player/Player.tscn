@@ -1,0 +1,46 @@
+[gd_scene load_steps=6 format=3 uid="uid://player_lumen_001"]
+
+[ext_resource type="Script" path="res://src/player/Player.gd" id="1_player"]
+[ext_resource type="Script" path="res://src/player/CombatController.gd" id="2_combat"]
+[ext_resource type="Script" path="res://src/player/KineticBash.gd" id="3_bash"]
+[ext_resource type="Script" path="res://src/player/PlasmaGrapple.gd" id="4_grapple"]
+
+[node name="Player" type="CharacterBody2D"]
+collision_mode = 0
+collision_layer = 1
+collision_mask = 0
+script = ExtResource("1_player")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+shape = SubResource("CapsuleShape2D_player")
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_player"]
+radius = 14.0
+height = 40.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="Skeleton2D" type="Skeleton2D" parent="."]
+
+[node name="ScarfPoint" type="Node2D" parent="."]
+position = Vector2(14.0, -8.0)
+
+[node name="CombatController" type="Node" parent="."]
+script = ExtResource("2_combat")
+player = NodePath("../Player")
+
+[node name="KineticBash" type="Node2D" parent="."]
+script = ExtResource("3_bash")
+player = NodePath("..")
+
+[node name="PlasmaGrapple" type="RayCast2D" parent="."]
+script = ExtResource("4_grapple")
+player = NodePath("..")
+collision_mask = 64
+enabled = true

@@ -39,20 +39,25 @@ func _ready() -> void:
 	_load_faction_config()
 
 func _load_faction_config() -> void:
-	if not  ResourceLoader.exists("res://data/enemies.json"):
+	if not  FileAccess.file_exists("res://data/enemies.json"):
 		return
-	var data: Variant = load("res://data/enemies.json")
+	var f := FileAccess.open("res://data/enemies.json", FileAccess.READ)
+	if f == null:
+		return
+	var raw := f.get_as_text()
+	f.close()
+	var data: Variant = JSON.parse_string(raw)
 	if typeof(data) != TYPE_DICTIONARY:
 		return
 	var factions: Array = data.get("factions", [])
-	for f in factions:
-		if f["id"] == faction:
-			hp = float(f.get("hp", max_hp))
-			damage = float(f.get("damage", damage))
-			move_speed = float(f.get("speed", move_speed))
-			detection_radius := float(f.get("detection_radius", DETECT_RADIUS))
-			firing_range = float(f.get("attack_range", firing_range))
-			for aggro in f.get("aggro_faction", []):
+	for fct in factions:
+		if fct["id"] == faction:
+			hp = float(fct.get("hp", max_hp))
+			damage = float(fct.get("damage", damage))
+			move_speed = float(fct.get("speed", move_speed))
+			detection_radius := float(fct.get("detection_radius", DETECT_RADIUS))
+			firing_range = float(fct.get("attack_range", firing_range))
+			for aggro in fct.get("aggro_faction", []):
 				_aggro_factions.append(aggro)
 			break
 

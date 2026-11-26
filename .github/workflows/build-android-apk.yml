@@ -76,12 +76,25 @@ jobs:
 
       - name: Install Godot Android export templates
         run: |
-          # The Godot 4 editor auto-downloads and installs export templates for
-          # all platforms on its first run. Running it headless once (then quitting)
-          # installs the Android templates needed for --export-debug below.
-          "$GODOT_BIN" --headless --editor --quit --path . || true
-          # Confirm the Android export template was installed.
-          find "$HOME/.local/share/godot/export_templates" -maxdepth 2 -type d 2>/dev/null | head || true
+          # Godot 4 does NOT auto-download export templates in headless mode.
+          # Explicitly download and extract the official 4.3-stable export
+          # templates into the editor's expected templates directory.
+          TEMPLATES_URL="https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz"
+          TEMPLATES_DIR="$HOME/.local/share/godot/export_templates/4.3.stable"
+          mkdir -p "$TEMPLATES_DIR"
+          curl -sSL -o "$RUNNER_TEMP/export_templates.tpz" "$TEMPLATES_URL"
+          # The .tpz is a zip; extract and move the inner templates/* into place.
+          unzip -o "$RUNNER_TEMP/export_templates.tpz" -d "$RUNNER_TEMP/export_templates_extract"
+          if [ -d "$RUNNER_TEMP/export_templates_extract/templates" ]; then
+            cp -r "$RUNNER_TEMP/export_templates_extract/templates/." "$TEMPLATES_DIR/"
+          elif [ -d "$RUNNER_TEMP/export_templates_extract/4.3.stable" ]; then
+            cp -r "$RUNNER_TEMP/export_templates_extract/4.3.stable/." "$TEMPLATES_DIR/"
+          else
+            cp -r "$RUNNER_TEMP/export_templates_extract/." "$TEMPLATES_DIR/"
+          fi
+          # Confirm the Android export template is present before exporting.
+          test -f "$TEMPLATES_DIR/android_debug.apk" || { echo "::error::Android export template (android_debug.apk) not found in $TEMPLATES_DIR"; exit 1; }
+          echo "Android export templates installed at $TEMPLATES_DIR"
 
       - name: Generate 4-map PBR assets
         run: |
@@ -100,9 +113,10 @@ jobs:
       - name: Export Android APK (debug)
         run: |
           mkdir -p build
+          # Use the exact preset name defined in export_presets.cfg.
           "$GODOT_BIN" --headless \
             --path . \
-            --export-debug "Android" \
+            --export-debug "Android (100% Offline APK)" \
             "build/$APK_NAME"
 
       - name: Verify APK exists

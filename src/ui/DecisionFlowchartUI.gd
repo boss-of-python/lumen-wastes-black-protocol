@@ -20,10 +20,16 @@ func _ready() -> void:
 	_refresh_codex()
 
 func _load_endings() -> void:
-	if not  ResourceLoader.exists(ENDINGS_PATH):
+	if not  FileAccess.file_exists(ENDINGS_PATH):
 		push_error("DecisionFlowchartUI: endings.json missing at %s" % ENDINGS_PATH)
 		return
-	var data: Variant = load(ENDINGS_PATH)
+	# load() on a .json returns a JSON Resource, not a Dictionary — parse text.
+	var f := FileAccess.open(ENDINGS_PATH, FileAccess.READ)
+	if f == null:
+		return
+	var raw := f.get_as_text()
+	f.close()
+	var data: Variant = JSON.parse_string(raw)
 	if typeof(data) != TYPE_DICTIONARY:
 		return
 	_endings = data.get("endings", [])
