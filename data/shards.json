@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "description": "24 swappable Ori-style Core Shards. At most one core shard may be equipped at a time; each grants a passive or active ability.",
+  "shards": [
+    { "id": "triple_thruster", "name": "Triple Thruster", "tier": 1, "grants": "triple_jump", "description": "Grants a third air jump." },
+    { "id": "coyote_heart", "name": "Coyote Heart", "tier": 1, "grants": "coyote_extended", "description": "Coyote time extended to 0.2s." },
+    { "id": "jump_charge", "name": "Jump Charge", "tier": 1, "grants": "variable_jump", "description": "Hold-to-higher variable jump height." },
+    { "id": "dash_master", "name": "Dash Master", "tier": 1, "grants": "dash_cooldown_reduce", "description": "Phase-Dash cooldown reduced by 30%." },
+    { "id": "dash_strength", "name": "Dash Strength", "tier": 2, "grants": "dash_speed_boost", "description": "Phase-Dash speed +15%." },
+    { "id": "sprint_keel", "name": "Sprint Keel", "tier": 1, "grants": "sprint_stamina", "description": "Sprint no longer drains stamina." },
+    { "id": "wall_clinger", "name": "Wall Clinger", "tier": 1, "grants": "wall_slide_extend", "description": "Wall-slide duration extended." },
+    { "id": "wall_kick_boots", "name": "Wall-Kick Boots", "tier": 2, "grants": "wall_kick_boost", "description": "Wall-kick power +20%." },
+    { "id": "melee_titan", "name": "Melee Titan", "tier": 2, "grants": "melee_damage_boost", "description": "Staff damage +20%." },
+    { "id": "finisher_edge", "name": "Finisher Edge", "tier": 2, "grants": "finisher_heal_boost", "description": "Finisher healing +5 HP." },
+    { "id": "gunsmith_hand", "name": "Gunsmith Hand", "tier": 2, "grants": "reload_speed", "description": "Reload speed +25%." },
+    { "id": "marksman_eye", "name": "Marksman Eye", "tier": 2, "grants": "spread_reduction", "description": "Weapon spread -25%." },
+    { "id": "bastion_core", "name": "Bastion Core", "tier": 3, "grants": "damage_resistance", "description": "Incoming damage -15%." },
+    { "id": "stasis_heart", "name": "Stasis Heart", "tier": 3, "grants": "stasis_duration", "description": "Stasis Lock duration +1.0s." },
+    { "id": "mirage_feather", "name": "Mirage Feather", "tier": 3, "grants": "mirage_duration", "description": "Holo-Mirage duration +1.5s." },
+    { "id": "swarm_hive", "name": "Swarm Hive", "tier": 3, "grants": "swarm_duration", "description": "Swarm Protocol duration +2.0s." },
+    { "id": "aegis_plate", "name": "Aegis Plate", "tier": 3, "grants": "aegis_duration", "description": "Aegis Parry duration +0.4s." },
+    { "id": "bash_lever", "name": "Bash Lever", "tier": 2, "grants": "bash_range", "description": "Kinetic Bash detection range +40px." },
+    { "id": "bash_spring", "name": "Bash Spring", "tier": 3, "grants": "bash_cooldown", "description": "Kinetic Bash cooldown -40%." },
+    { "id": "grapple_magnet", "name": "Grapple Magnet", "tier": 2, "grants": "grapple_range", "description": "Plasma Grapple range +30%." },
+    { "id": "grapple_sling", "name": "Grapple Sling", "tier": 3, "grants": "grapple_zip_speed", "description": "Ultra Grapple zip speed +35%." },
+    { "id": "atv_turbo", "name": "ATV Turbo", "tier": 3, "grants": "atv_boost", "description": "Armored ATV boost charge +50%." },
+    { "id": "lucid_mind", "name": "Lucid Mind", "tier": 3, "grants": "focus_slowmo", "description": "Focus slow-mo cost -30%." },
+    { "id": "eternal_spark", "name": "Eternal Spark", "tier": 4, "grants": "ng_plus_core", "description": "NG+ Veteran: all stats +10%, new Ending #30 path." }
+  ]
+}

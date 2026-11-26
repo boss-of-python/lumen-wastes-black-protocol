@@ -1,0 +1,60 @@
+{
+  "manifest_version": "1.0.0",
+  "project": "LUMEN WASTES: BLACK PROTOCOL",
+  "description": "Hot-swappable manifest for all sprites, PBR maps, portraits & audio. Validated offline by res://tests/test_runner.gd.",
+  "offline_lock": {
+    "network_permissions": [],
+    "note": "INTERNET and ACCESS_NETWORK_STATE must never appear in export_presets.cfg."
+  },
+  "assets": [
+    { "name": "biome_overgrown_canopy", "kind": "environment", "theme": "bio_teal", "size": 512 },
+    { "name": "biome_sunken_reliquary", "kind": "environment", "theme": "stone_gold", "size": 512 },
+    { "name": "biome_coolant_foundry", "kind": "environment", "theme": "cold_blue", "size": 512 },
+    { "name": "biome_rust_highway", "kind": "environment", "theme": "oxidized_steel", "size": 512 },
+    { "name": "biome_glass_domes", "kind": "environment", "theme": "violet_glow", "size": 512 },
+    { "name": "biome_abyssal_trench", "kind": "environment", "theme": "cold_blue", "size": 512 },
+    { "name": "biome_orbital_elevator", "kind": "environment", "theme": "neutral_gray", "size": 512 },
+    { "name": "biome_orbital_spire", "kind": "environment", "theme": "violet_glow", "size": 512 },
+    { "name": "outpost_haven", "kind": "environment", "theme": "stone_gold", "size": 512 },
+
+    { "name": "player_wraith06", "kind": "character", "theme": "stone_gold", "size": 256 },
+    { "name": "luma_companion", "kind": "character", "theme": "bio_teal", "size": 256, "emission_intensity": 1.4 },
+    { "name": "enemy_mutant", "kind": "character", "theme": "acid_green", "size": 256 },
+    { "name": "enemy_aeigis_bot", "kind": "character", "theme": "oxidized_steel", "size": 256 },
+    { "name": "enemy_xeno_fauna", "kind": "character", "theme": "violet_glow", "size": 256, "emission_intensity": 1.2 },
+    { "name": "enemy_vanguard_trooper", "kind": "character", "theme": "neutral_gray", "size": 256 },
+
+    { "name": "boss_iron_matriarch", "kind": "boss", "theme": "stone_gold", "size": 512 },
+    { "name": "boss_stone_colossus", "kind": "boss", "theme": "stone_gold", "size": 512 },
+    { "name": "boss_scorch_wolf_exo", "kind": "boss", "theme": "ember_red", "size": 512 },
+    { "name": "boss_siege_dredger", "kind": "boss", "theme": "oxidized_steel", "size": 512 },
+    { "name": "boss_thunder_loong", "kind": "boss", "theme": "cold_blue", "size": 512 },
+    { "name": "boss_blind_leviathan", "kind": "boss", "theme": "cold_blue", "size": 512 },
+    { "name": "boss_frost_wraith", "kind": "boss", "theme": "cold_blue", "size": 512 },
+    { "name": "boss_twin_seraphs", "kind": "boss", "theme": "ember_red", "size": 512 },
+    { "name": "boss_cinder_seraph", "kind": "boss", "theme": "ember_red", "size": 512 },
+    { "name": "boss_archon0", "kind": "boss", "theme": "violet_glow", "size": 512, "emission_intensity": 1.6 },
+
+    { "name": "prop_crate", "kind": "prop", "theme": "neutral_gray", "size": 128 },
+    { "name": "prop_explosive_barrel", "kind": "prop", "theme": "ember_red", "size": 128 },
+    { "name": "prop_dynamite_chain", "kind": "prop", "theme": "ember_red", "size": 128 },
+    { "name": "prop_hanging_girder", "kind": "prop", "theme": "oxidized_steel", "size": 256 },
+    { "name": "prop_oil_pool", "kind": "prop", "theme": "neutral_gray", "size": 128 },
+    { "name": "prop_electric_water", "kind": "prop", "theme": "cold_blue", "size": 128 },
+    { "name": "prop_acid_pool", "kind": "prop", "theme": "acid_green", "size": 128 },
+    { "name": "prop_armored_atv", "kind": "prop", "theme": "oxidized_steel", "size": 256 },
+    { "name": "prop_grapple_anchor", "kind": "prop", "theme": "stone_gold", "size": 64 }
+  ],
+  "portraits": [
+    { "name": "kael_vance", "character": "Kael Vance (WRAITH-06)", "size": 256 },
+    { "name": "luma", "character": "Luma (Cradle seed-AI)", "size": 256 },
+    { "name": "sergeant_reyes", "character": "Sgt. Ghost Reyes", "size": 256 },
+    { "name": "archon0", "character": "ARCHON-0", "size": 256 }
+  ],
+  "audio_stems": [
+    { "name": "stem_covert_ambient", "stem": "Covert Ambient", "duration": 60.0 },
+    { "name": "stem_tactical_combat", "stem": "Tactical Combat", "duration": 60.0 },
+    { "name": "stem_mythic_boss", "stem": "Mythic Boss", "duration": 60.0 },
+    { "name": "stem_escape_crescendo", "stem": "Escape Crescendo", "duration": 60.0 }
+  ]
+}

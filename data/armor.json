@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0.0",
+  "description": "6 visual 3-piece armor sets (Helmet, Chest, Legs). Purely visual with minor stat tiering.",
+  "armor_sets": [
+    {
+      "id": "wraith_operative",
+      "name": "Wraith Operative",
+      "tier": 1,
+      "unlock": "start",
+      "description": "Disavowed Tier-1 black-ops kit.",
+      "stats": { "max_hp": 0, "move_speed": 0, "stealth": 0.05 },
+      "pieces": [
+        { "slot": "helmet", "name": "Wraith Visor", "sprite": "armor_wraith_helmet" },
+        { "slot": "chest", "name": "Wraith Chest Rig", "sprite": "armor_wraith_chest" },
+        { "slot": "legs", "name": "Wraith Leggings", "sprite": "armor_wraith_legs" }
+      ]
+    },
+    {
+      "id": "aeigis_reinforced",
+      "name": "Aegis Reinforced",
+      "tier": 2,
+      "unlock": "biome_2",
+      "description": "Captured Aegis-9 security plating.",
+      "stats": { "max_hp": 15, "move_speed": -0.02, "stealth": -0.03 },
+      "pieces": [
+        { "slot": "helmet", "name": "Aegis Helm", "sprite": "armor_aeigis_helmet" },
+        { "slot": "chest", "name": "Aegis Pauldron", "sprite": "armor_aeigis_chest" },
+        { "slot": "legs", "name": "Aegis Greaves", "sprite": "armor_aeigis_legs" }
+      ]
+    },
+    {
+      "id": "vanguard_commando",
+      "name": "Vanguard Commando",
+      "tier": 2,
+      "unlock": "biome_4",
+      "description": "Helios-Vanguard desert-ops ensemble.",
+      "stats": { "max_hp": 10, "move_speed": 0.03, "stealth": -0.05 },
+      "pieces": [
+        { "slot": "helmet", "name": "Vanguard Beret", "sprite": "armor_vanguard_helmet" },
+        { "slot": "chest", "name": "Vanguard Jacket", "sprite": "armor_vanguard_chest" },
+        { "slot": "legs", "name": "Vanguard Trousers", "sprite": "armor_vanguard_legs" }
+      ]
+    },
+    {
+      "id": "xeno_weave",
+      "name": "Xeno Weave",
+      "tier": 3,
+      "unlock": "biome_5",
+      "description": "Luminous xeno-fauna chitin cloak.",
+      "stats": { "max_hp": 20, "move_speed": 0.02, "stealth": 0.12 },
+      "pieces": [
+        { "slot": "helmet", "name": "Xeno Crown", "sprite": "armor_xeno_helmet" },
+        { "slot": "chest", "name": "Xeno Carapace", "sprite": "armor_xeno_chest" },
+        { "slot": "legs", "name": "Xeno Greaves", "sprite": "armor_xeno_legs" }
+      ]
+    },
+    {
+      "id": "mutant_leather",
+      "name": "Mutant Leather",
+      "tier": 3,
+      "unlock": "biome_6",
+      "description": "Blighted-mutant tanned hide.",
+      "stats": { "max_hp": 25, "move_speed": -0.01, "stealth": 0.08 },
+      "pieces": [
+        { "slot": "helmet", "name": "Mutant Hood", "sprite": "armor_mutant_helmet" },
+        { "slot": "chest", "name": "Mutant Hide", "sprite": "armor_mutant_chest" },
+        { "slot": "legs", "name": "Mutant Boots", "sprite": "armor_mutant_legs" }
+      ]
+    },
+    {
+      "id": "archon_relic",
+      "name": "Archon Relic",
+      "tier": 4,
+      "unlock": "biome_8",
+      "description": "Relic plate of the Orbital Spire Core.",
+      "stats": { "max_hp": 40, "move_speed": 0.02, "stealth": 0.1 },
+      "pieces": [
+        { "slot": "helmet", "name": "Archon Crown", "sprite": "armor_archon_helmet" },
+        { "slot": "chest", "name": "Archon Cuirass", "sprite": "armor_archon_chest" },
+        { "slot": "legs", "name": "Archon Sabatons", "sprite": "armor_archon_legs" }
+      ]
+    }
+  ]
+}

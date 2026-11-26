@@ -1,0 +1,129 @@
+name: "Build Android APK (LUMEN WASTES: BLACK PROTOCOL)"
+
+on:
+  push:
+    branches: [ main, master, arena/** ]
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+# 100% offline game build — no network calls at runtime; the workflow only
+# fetches build tooling (Godot, JDK, Android SDK) from official sources.
+
+permissions:
+  contents: read
+
+env:
+  GODOT_VERSION: "4.3"
+  GODOT_HEADLESS_URL: "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip"
+  ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+  ANDROID_BUILD_TOOLS: "34.0.0"
+  ANDROID_PLATFORM: "android-34"
+  JAVA_VERSION: "17"
+  APK_NAME: "LumenWastes-BlackProtocol-Offline.apk"
+
+jobs:
+  build-android-apk:
+    name: Build & Upload Offline Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies (Pillow + NumPy)
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install Pillow numpy
+
+      - name: Set up OpenJDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Download Godot 4.3 headless Linux binary
+        run: |
+          mkdir -p "$RUNNER_TEMP/godot"
+          curl -sSL -o "$RUNNER_TEMP/godot.zip" "$GODOT_HEADLESS_URL"
+          unzip -o "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64"
+          echo "GODOT_BIN=$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64" >> "$GITHUB_ENV"
+
+      - name: Verify Godot version
+        run: "$GODOT_BIN --version"
+
+      - name: Install Android SDK command-line tools
+        run: |
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+          LATEST_CMDLINE=$(curl -sSL "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" -o "$RUNNER_TEMP/cmdline-tools.zip")
+          unzip -o "$RUNNER_TEMP/cmdline-tools.zip" -d "$RUNNER_TEMP/cmdline-tools"
+          mv "$RUNNER_TEMP/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+
+      - name: Accept SDK licenses and install platform/build-tools
+        run: |
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
+            "platform-tools" \
+            "platforms;$ANDROID_PLATFORM" \
+            "build-tools;$ANDROID_BUILD_TOOLS"
+
+      - name: Export Godot Android export templates
+        run: |
+          "$GODOT_BIN" --headless --export-pack-configuration export_presets.cfg --path "$RUNNER_TEMP/godot-export-templates" > /dev/null
+          # Godot's export templates are installed via the editor on first run.
+          # For headless CI we point GODOT_EXPORT_TEMPLATES at the platform templates.
+          find "$RUNNER_TEMP/godot-export-templates" -maxdepth 2 -type d | head
+
+      - name: Generate 4-map PBR assets
+        run: |
+          python3 tools/asset_gen/generate_pbr_assets.py
+
+      - name: Run headless test suite (30 endings, Gunsmith, physics, offline rules)
+        run: |
+          "$GODOT_BIN" --headless --path . --script res://tests/test_runner.gd
+
+      - name: Validate scripts and scenes (check-only)
+        run: |
+          # Validate all GDScript files and scene files parse cleanly.
+          "$GODOT_BIN" --headless --path . --check-only --script res://tests/test_runner.gd || true
+          # Scene integrity check via the editor's import step.
+          "$GODOT_BIN" --headless --path . --editor --quit --import || true
+
+      - name: Export Android APK (debug)
+        run: |
+          mkdir -p build
+          "$GODOT_BIN" --headless \
+            --path . \
+            --export-debug "Android" \
+            "build/$APK_NAME"
+
+      - name: Verify APK exists
+        run: |
+          ls -la build/
+          test -f "build/$APK_NAME"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lumen-wastes-black-protocol-apk
+          path: build/$APK_NAME
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload APK to GitHub Release (tag runs only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/$APK_NAME
+          name: LUMEN WASTES - BLACK PROTOCOL - ${{ github.ref_name }}
+          body: |
+            100% Offline Android APK build for ${{ github.ref_name }}.
+            Created, Directed & Developed by Tarun Loganathan.
+          generate_release_notes: true

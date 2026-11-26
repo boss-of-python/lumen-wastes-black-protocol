@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3 uid="uid://bossrocket_lumen_001"]
+
+[ext_resource type="Script" path="res://src/physics/BossRocket.gd" id="1_rocket"]
+
+[node name="BossRocket" type="Area2D"]
+collision_layer = 16
+collision_mask = 1
+script = ExtResource("1_rocket")
+speed = 420.0
+bash_damage = 120.0
+
+[node name="Sprite" type="Sprite2D" parent="."]
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 12.0
+offset_bottom = 12.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_rocket")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_rocket"]
+radius = 12.0
