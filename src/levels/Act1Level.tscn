@@ -5,39 +5,39 @@
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(8000, 64)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_l"]
 size = Vector2(64, 4000)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_r"]
 size = Vector2(64, 4000)
 
 [node name="Act1Level" type="Node2D"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(960, 420)
 zoom = Vector2(1, 1)
 
 [node name="World" type="Node2D" parent="."]
 
 [node name="Ground" type="StaticBody2D" parent="World"]
-collision_layer = 0
-collision_mask = 1
+position = Vector2(3600, 0)
+collision_layer = 1
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/Ground"]
 shape = SubResource("RectangleShape2D_ground")
 
 [node name="WallLeft" type="StaticBody2D" parent="World"]
 position = Vector2(-800, -400)
-collision_layer = 0
-collision_mask = 1
+collision_layer = 1
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/WallLeft"]
 shape = SubResource("RectangleShape2D_wall_l")
 
 [node name="WallRight" type="StaticBody2D" parent="World"]
 position = Vector2(8000, -400)
-collision_layer = 0
-collision_mask = 1
+collision_layer = 1
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/WallRight"]
 shape = SubResource("RectangleShape2D_wall_r")

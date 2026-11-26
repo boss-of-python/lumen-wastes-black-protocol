@@ -1,9 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://faction_lumen_001"]
+[gd_scene load_steps=3 format=3 uid="uid://faction_lumen_001"]
 
 [ext_resource type="Script" path="res://src/ai/FactionAgent.gd" id="1_faction"]
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_faction"]
+radius = 16.0
+height = 48.0
 
 [node name="FactionAgent" type="CharacterBody2D"]
-collision_mode = 0
 collision_layer = 2
 collision_mask = 1
 script = ExtResource("1_faction")
@@ -22,7 +24,3 @@ collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
 shape = SubResource("CapsuleShape2D_faction")
-
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_faction"]
-radius = 16.0
-height = 48.0

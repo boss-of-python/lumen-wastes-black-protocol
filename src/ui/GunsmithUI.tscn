@@ -9,6 +9,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_gunsmith")
 
 [node name="WeaponList" type="ItemList" parent="."]
 layout_mode = 2
@@ -41,6 +42,3 @@ anchor_bottom = 0.95
 grow_horizontal = 2
 grow_vertical = 2
 text = "Select a weapon"
-
-[node name="script" type="Script" parent="."]
-script = ExtResource("1_gunsmith")
