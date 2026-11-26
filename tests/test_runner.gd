@@ -95,7 +95,10 @@ func _test_narrative_resolver() -> void:
 	ns.name = "NSMTest"
 	ns.set_script(load("res://src/autoload/NarrativeStateManager.gd"))
 	root.add_child(ns)
-	var nsm = ns as NarrativeStateManager
+	# Use Variant-typed dynamic dispatch: class_name types are not registered
+	# at parse time when running via --script, so 'as NarrativeStateManager'
+	# would fail to resolve. Variant dispatch avoids static type resolution.
+	var nsm: Variant = ns
 	# Simulate the True Ending flag set.
 	nsm.set_flag("strategy_nvg_stealth", true)
 	nsm.set_flag("power_core_med_bay", true)
@@ -134,7 +137,9 @@ func _test_gunsmith_math() -> void:
 	cc.name = "CCTest"
 	cc.set_script(load("res://src/player/CombatController.gd"))
 	root.add_child(cc)
-	var combat = cc as CombatController
+	# Variant-typed dynamic dispatch (class_name not registered at parse time
+	# when running via --script, so 'as CombatController' would fail to resolve).
+	var combat: Variant = cc
 	# Baseline M4-X Pulse Carbine.
 	var base: Dictionary = combat.get_effective_stats("m4_x_pulse")
 	_assert(int(base["damage"]) == 18, "M4-X base damage 18 (got %d)" % int(base["damage"]))
