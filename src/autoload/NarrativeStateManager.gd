@@ -1,6 +1,7 @@
 # NarrativeStateManager.gd
 # 5 strategic narrative layers, 18 crossroads, 30-Ending resolver.
 # 100% offline: deterministic state machine resolving endings from flags.
+class_name NarrativeStateManager
 extends Node
 
 const LAYER_STRATEGY := "pre_mission_strategy"

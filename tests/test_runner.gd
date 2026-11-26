@@ -74,7 +74,7 @@ func _test_endings_completeness() -> void:
 	var ids: Array[int] = []
 	for e in endings:
 		var id: int = e["id"]
-		_assert(id in ids == false, "Ending id %d unique" % id)
+		_assert(not (id in ids), "Ending id %d unique" % id)
 		ids.append(id)
 	_assert(ids.size() == 30, "30 unique ending ids")
 	for e in endings:
@@ -95,7 +95,10 @@ func _test_narrative_resolver() -> void:
 	ns.name = "NSMTest"
 	ns.set_script(load("res://src/autoload/NarrativeStateManager.gd"))
 	root.add_child(ns)
-	var nsm = ns as NarrativeStateManager
+	# Use Variant-typed dynamic dispatch: class_name types are not registered
+	# at parse time when running via --script, so 'as NarrativeStateManager'
+	# would fail to resolve. Variant dispatch avoids static type resolution.
+	var nsm: Variant = ns
 	# Simulate the True Ending flag set.
 	nsm.set_flag("strategy_nvg_stealth", true)
 	nsm.set_flag("power_core_med_bay", true)
@@ -134,18 +137,20 @@ func _test_gunsmith_math() -> void:
 	cc.name = "CCTest"
 	cc.set_script(load("res://src/player/CombatController.gd"))
 	root.add_child(cc)
-	var combat = cc as CombatController
+	# Variant-typed dynamic dispatch (class_name not registered at parse time
+	# when running via --script, so 'as CombatController' would fail to resolve).
+	var combat: Variant = cc
 	# Baseline M4-X Pulse Carbine.
-	var base := combat.get_effective_stats("m4_x_pulse")
+	var base: Dictionary = combat.get_effective_stats("m4_x_pulse")
 	_assert(int(base["damage"]) == 18, "M4-X base damage 18 (got %d)" % int(base["damage"]))
 	_assert(int(base["mag_size"]) == 30, "M4-X base mag 30 (got %d)" % int(base["mag_size"]))
 	# Extended Mag: 1.45x capacity.
 	combat.equip_attachment("extended_mag")
-	var extended := combat.get_effective_stats("m4_x_pulse")
+	var extended: Dictionary = combat.get_effective_stats("m4_x_pulse")
 	_assert(int(extended["mag_size"]) == 43, "Extended Mag 1.45x -> 43 rounds (got %d)" % int(extended["mag_size"]))
 	# FMJ: 1.25x damage + 1 pierce.
 	combat.equip_attachment("fmj")
-	var fmj := combat.get_effective_stats("m4_x_pulse")
+	var fmj: Dictionary = combat.get_effective_stats("m4_x_pulse")
 	_assert(int(fmj["damage"]) == 22, "FMJ 1.25x -> 22 dmg (got %d)" % int(fmj["damage"]))
 	_assert(int(fmj["pierce"]) == 1, "FMJ +1 pierce (got %d)" % int(fmj["pierce"]))
 	# Max 5 attachments enforced.
@@ -156,10 +161,10 @@ func _test_gunsmith_math() -> void:
 	_assert(combat.get_attachments_equipped().size() == 5, "5 attachments equipped")
 	_assert(not  combat.equip_attachment("extended_mag"), "Cannot equip a 6th attachment")
 	# Sleight of Hand: 0.60x reload.
-	var reload_stats := combat.get_effective_stats("m4_x_pulse")
+	var reload_stats: Dictionary = combat.get_effective_stats("m4_x_pulse")
 	_assert(reload_stats["reload_time"] < 1.6, "Sleight 0.60x reload reduces time (got %.2f)" % reload_stats["reload_time"])
 	# VX-9 Plasma Rail baseline.
-	var rail := combat.get_effective_stats("vx9_plasma_rail")
+	var rail: Dictionary = combat.get_effective_stats("vx9_plasma_rail")
 	_assert(int(rail["damage"]) == 52, "VX-9 base damage 52 (got %d)" % int(rail["damage"]))
 	_assert(int(rail["pierce"]) == 3, "VX-9 base pierce 3 (got %d)" % int(rail["pierce"]))
 	# Spell energy costs.
@@ -284,11 +289,14 @@ func _test_asset_manifest() -> void:
 func _section(name: String) -> void:
 	print("--- %s ---" % name)
 
+func _fail(message: String) -> void:
+	_failed += 1
+	_failures.append(message)
+	print("  FAIL: %s" % message)
+
 func _assert(condition: bool, message: String) -> void:
 	if condition:
 		_passed += 1
 		print("  PASS: %s" % message)
 	else:
-		_failed += 1
-		_failures.append(message)
-		print("  FAIL: %s" % message)
+		_fail(message)

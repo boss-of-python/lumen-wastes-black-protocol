@@ -74,12 +74,14 @@ jobs:
             "platforms;$ANDROID_PLATFORM" \
             "build-tools;$ANDROID_BUILD_TOOLS"
 
-      - name: Export Godot Android export templates
+      - name: Install Godot Android export templates
         run: |
-          "$GODOT_BIN" --headless --export-pack-configuration export_presets.cfg --path "$RUNNER_TEMP/godot-export-templates" > /dev/null
-          # Godot's export templates are installed via the editor on first run.
-          # For headless CI we point GODOT_EXPORT_TEMPLATES at the platform templates.
-          find "$RUNNER_TEMP/godot-export-templates" -maxdepth 2 -type d | head
+          # The Godot 4 editor auto-downloads and installs export templates for
+          # all platforms on its first run. Running it headless once (then quitting)
+          # installs the Android templates needed for --export-debug below.
+          "$GODOT_BIN" --headless --editor --quit --path . || true
+          # Confirm the Android export template was installed.
+          find "$HOME/.local/share/godot/export_templates" -maxdepth 2 -type d 2>/dev/null | head || true
 
       - name: Generate 4-map PBR assets
         run: |
@@ -89,12 +91,11 @@ jobs:
         run: |
           "$GODOT_BIN" --headless --path . --script res://tests/test_runner.gd
 
-      - name: Validate scripts and scenes (check-only)
+      - name: Validate scripts and scenes (import check)
         run: |
-          # Validate all GDScript files and scene files parse cleanly.
-          "$GODOT_BIN" --headless --path . --check-only --script res://tests/test_runner.gd || true
-          # Scene integrity check via the editor's import step.
-          "$GODOT_BIN" --headless --path . --editor --quit --import || true
+          # Re-import all resources; this parses every GDScript file and scene
+          # and fails the step if any script or scene has errors.
+          "$GODOT_BIN" --headless --path . --editor --quit --import
 
       - name: Export Android APK (debug)
         run: |

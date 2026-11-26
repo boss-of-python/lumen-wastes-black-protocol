@@ -17,6 +17,51 @@ signal codex_updated(unlocked_count: int)
 
 func _ready() -> void:
 	_load_slots_cache()
+	setup_input_actions()
+
+# ---------------------------------------------------------------------------
+# Input actions (set up at runtime; keeps project.godot ConfigFile robust)
+# ---------------------------------------------------------------------------
+func setup_input_actions() -> void:
+	# Register every input action and its key/mouse events programmatically.
+	# This mirrors the intended control scheme without relying on a
+	# hand-serialized [input] section in project.godot.
+	_add_key_action("move_left", KEY_LEFT)
+	_add_key_action("move_left", KEY_A)
+	_add_key_action("move_right", KEY_RIGHT)
+	_add_key_action("move_right", KEY_D)
+	_add_key_action("jump", KEY_SPACE)
+	_add_key_action("dash", KEY_SHIFT)
+	_add_key_action("shoot", KEY_W)
+	_add_mouse_button_action("shoot", MOUSE_BUTTON_LEFT)
+	_add_key_action("reload", KEY_R)
+	_add_key_action("swap_weapon", KEY_Q)
+	_add_key_action("spell_stasis", KEY_1)
+	_add_key_action("spell_mirage", KEY_2)
+	_add_key_action("spell_swarm", KEY_3)
+	_add_key_action("spell_aegis", KEY_4)
+	_add_key_action("bash", KEY_H)
+	_add_key_action("grapple", KEY_J)
+	_add_key_action("melee", KEY_K)
+	_add_key_action("interact", KEY_E)
+	_add_key_action("medkit", KEY_M)
+	_add_key_action("nvg_toggle", KEY_N)
+	_add_key_action("focus", KEY_F)
+	_add_key_action("ui_cancel", KEY_ESCAPE)
+
+func _add_key_action(action_name: String, keycode: int) -> void:
+	if not  Input.has_action(action_name):
+		Input.add_action(action_name)
+	var event := InputEventKey.new()
+	event.physical_keycode = keycode
+	Input.action_add_event(action_name, event)
+
+func _add_mouse_button_action(action_name: String, button_index: int) -> void:
+	if not  Input.has_action(action_name):
+		Input.add_action(action_name)
+	var event := InputEventMouseButton.new()
+	event.button_index = button_index
+	Input.action_add_event(action_name, event)
 
 # ---------------------------------------------------------------------------
 # Slot cache
