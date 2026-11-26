@@ -2,6 +2,7 @@
 # Gunsmith ballistics (16 weapons, 7 attachment slots, max 5 equipped),
 # 3 Wukong Kinetic Staff Stances, 4 Spells, 6 Boss Transformations.
 # 100% offline ballistic math — no network, no cloud.
+class_name CombatController
 extends Node
 
 const WEAPONS_PATH: String = "res://data/weapons.json"
