@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0.0",
+  "description": "8 interconnected biomes forming the 20-hour progression, plus the Outpost Haven hub.",
+  "total_target_hours": 20.0,
+  "biomes": [
+    {
+      "id": 0,
+      "name": "Outpost Haven",
+      "type": "hub",
+      "target_hours": 0,
+      "unlocks": ["4-Tier Strategic Restoration", "Gunsmith", "Shards", "War-Room", "ATV Garage"],
+      "major_boss": null,
+      "levels": ["haven_hub", "haven_gunsmith", "haven_war_room"]
+    },
+    {
+      "id": 1,
+      "name": "Overgrown Crash Canopy",
+      "type": "biome",
+      "target_hours": "1.0-4.0",
+      "unlocks": ["Wall-Jump", "Phase-Dash", "Staff", "Supply Choice", "Ghost Trials #1-2"],
+      "major_boss": "iron_matriarch",
+      "levels": ["canopy_roots", "canopy_ruins", "canopy_ghost_trial_1", "canopy_ghost_trial_2"]
+    },
+    {
+      "id": 2,
+      "name": "Sunken Reliquary Caverns",
+      "type": "biome",
+      "target_hours": "4.0-6.2",
+      "unlocks": ["Kinetic Bash", "Stasis Lock", "NVG Breach #1", "Combat Shrine #1"],
+      "major_boss": "stone_colossus",
+      "levels": ["reliquary_entrance", "reliquary_deep", "reliquary_shrine"]
+    },
+    {
+      "id": 3,
+      "name": "Flooded Coolant Foundry",
+      "type": "biome",
+      "target_hours": "6.2-8.5",
+      "unlocks": ["Plasma Grapple", "Pillar Stance", "Aegis-9 Choice", "Escape #1 (Flood)"],
+      "major_boss": "scorch_wolf_exo",
+      "levels": ["foundry_upper", "foundry_flooded", "foundry_escape"]
+    },
+    {
+      "id": 4,
+      "name": "The Rust Highway",
+      "type": "biome",
+      "target_hours": "8.5-10.8",
+      "unlocks": ["Armored ATV Run #1", "Daisy-Chain Traps", "Orbital Gunship Support"],
+      "major_boss": "siege_dredger",
+      "levels": ["highway_start", "highway_atv_run", "highway_siege"]
+    },
+    {
+      "id": 5,
+      "name": "Shattered Glass Bio-Domes",
+      "type": "biome",
+      "target_hours": "10.8-13.0",
+      "unlocks": ["Black Ops Twist", "Focus Slow-Mo", "Vanguard Faction", "Escape #2"],
+      "major_boss": "thunder_loong",
+      "levels": ["domes_glass", "domes_twist", "domes_escape"]
+    },
+    {
+      "id": 6,
+      "name": "The Abyssal Trench",
+      "type": "biome",
+      "target_hours": "13.0-15.0",
+      "unlocks": ["NVG Breach #2", "Raid Fallout", "Holo-Mirage & Swarm", "Shrines #4-5"],
+      "major_boss": "frost_wraith",
+      "levels": ["trench_surface", "trench_depths", "trench_shrines"]
+    },
+    {
+      "id": 7,
+      "name": "Orbital Elevator Shaft",
+      "type": "biome",
+      "target_hours": "15.0-17.0",
+      "unlocks": ["Armored ATV Run #2", "UNIT-7 Fate Choice", "Vertical Bash Chains"],
+      "major_boss": "cinder_seraph",
+      "levels": ["elevator_base", "elevator_ascent", "elevator_shaft_top"]
+    },
+    {
+      "id": 8,
+      "name": "The Orbital Spire Core",
+      "type": "biome",
+      "target_hours": "17.0-20.0",
+      "unlocks": ["Final Strategic Choice", "Escape #3 (3-Min Collapse)", "30 Endings resolution"],
+      "major_boss": "archon_0",
+      "levels": ["spire_approach", "spire_core", "spire_final"]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "gunsmith": {
+    "attachment_slots": 7,
+    "max_attachments_equipped": 5,
+    "attachments": {
+      "suppressor": { "id": "suppressor", "name": "Suppressor", "effects": { "spread_multiplier": 0.65, "stealth_bonus": 0.35 } },
+      "extended_mag": { "id": "extended_mag", "name": "Extended Mag", "effects": { "mag_multiplier": 1.45 } },
+      "fmj": { "id": "fmj", "name": "FMJ Armor-Piercing", "effects": { "damage_multiplier": 1.25, "pierce_bonus": 1 } },
+      "ir_laser": { "id": "ir_laser", "name": "IR Laser", "effects": { "crit_chance_bonus": 0.30 } },
+      "sleight": { "id": "sleight", "name": "Sleight of Hand", "effects": { "reload_multiplier": 0.60 } },
+      "compensator": { "id": "compensator", "name": "Compensator", "effects": { "recoil_reduction": 0.5 } },
+      "laser_sight": { "id": "laser_sight", "name": "Laser Sight", "effects": { "aim_spread_reduction": 0.3 } }
+    },
+    "reload_types": ["tactical", "dry"]
+  },
+  "weapons": [
+    { "id": "m4_x_pulse", "name": "M4-X Pulse Carbine", "category": "assault_rifle", "damage": 18, "fire_rate": 0.13, "mag_size": 30, "reload_time": 1.6, "spread": 0.045, "bullet_speed": 900, "pierce": 0, "unlock": "start" },
+    { "id": "m870_breacher", "name": "M870 Breacher", "category": "shotgun", "damage": 14, "pellets": 5, "fire_rate": 0.58, "mag_size": 8, "reload_time": 2.1, "spread": 0.16, "bullet_speed": 700, "pierce": 0, "unlock": "start" },
+    { "id": "vx9_plasma_rail", "name": "VX-9 Plasma Rail", "category": "rail_rifle", "damage": 52, "fire_rate": 0.72, "mag_size": 6, "reload_time": 2.4, "spread": 0.01, "bullet_speed": 1600, "pierce": 3, "unlock": "biome_1_shrine" },
+    { "id": "mp7_ghost", "name": "MP-7 Ghost SMG", "category": "smg", "damage": 12, "fire_rate": 0.08, "mag_size": 40, "reload_time": 1.4, "spread": 0.07, "bullet_speed": 850, "pierce": 0, "unlock": "biome_1_supply" },
+    { "id": "marksman_dmr", "name": "Marksman DMR", "category": "dmr", "damage": 34, "fire_rate": 0.28, "mag_size": 20, "reload_time": 2.0, "spread": 0.03, "bullet_speed": 1400, "pierce": 1, "unlock": "biome_2_shrine" },
+    { "id": "arc_rifle", "name": "Arc Rifle", "category": "energy", "damage": 26, "fire_rate": 0.16, "mag_size": 24, "reload_time": 1.8, "spread": 0.05, "bullet_speed": 1100, "pierce": 1, "unlock": "biome_2_combat_shrine" },
+    { "id": "cryo_beam", "name": "Cryo-Beam", "category": "energy", "damage": 20, "fire_rate": 0.14, "mag_size": 30, "reload_time": 1.9, "spread": 0.04, "bullet_speed": 950, "pierce": 0, "status": "freeze", "unlock": "biome_3_choice" },
+    { "id": "flamethrower", "name": "Flamethrower", "category": "flame", "damage": 9, "fire_rate": 0.05, "mag_size": 60, "reload_time": 2.6, "spread": 0.2, "bullet_speed": 320, "pierce": 0, "status": "burn", "unlock": "biome_3_escape" },
+    { "id": "bounce_grenade_launcher", "name": "Bounce Grenade Launcher", "category": "launcher", "damage": 60, "fire_rate": 0.9, "mag_size": 6, "reload_time": 2.8, "spread": 0.05, "bullet_speed": 500, "pierce": 0, "bounces": 3, "unlock": "biome_4_atv_run" },
+    { "id": "micro_missile_pod", "name": "Micro-Missile Pod", "category": "launcher", "damage": 45, "fire_rate": 0.35, "mag_size": 8, "reload_time": 2.5, "spread": 0.08, "bullet_speed": 600, "pierce": 0, "homing": true, "unlock": "biome_4_traps" },
+    { "id": "sawblade_launcher", "name": "Sawblade Launcher", "category": "launcher", "damage": 30, "fire_rate": 0.6, "mag_size": 10, "reload_time": 2.2, "spread": 0.06, "bullet_speed": 750, "pierce": 2, "boomerang": true, "unlock": "biome_5_twist" },
+    { "id": "anti_materiel_sniper", "name": "Anti-Materiel Sniper", "category": "sniper", "damage": 120, "fire_rate": 1.1, "mag_size": 5, "reload_time": 3.0, "spread": 0.005, "bullet_speed": 2200, "pierce": 4, "unlock": "biome_5_vanguard" },
+    { "id": "heavy_revolver", "name": "Heavy Revolver", "category": "revolver", "damage": 48, "fire_rate": 0.42, "mag_size": 6, "reload_time": 1.7, "spread": 0.035, "bullet_speed": 1300, "pierce": 1, "unlock": "biome_6_raid" },
+    { "id": "auto_shotgun", "name": "Auto-Shotgun", "category": "shotgun", "damage": 11, "pellets": 4, "fire_rate": 0.35, "mag_size": 12, "reload_time": 2.0, "spread": 0.14, "bullet_speed": 720, "pierce": 0, "unlock": "biome_6_shrine" },
+    { "id": "tactical_pistol", "name": "Tactical Pistol", "category": "pistol", "damage": 22, "fire_rate": 0.2, "mag_size": 15, "reload_time": 1.2, "spread": 0.04, "bullet_speed": 1000, "pierce": 0, "unlock": "biome_7_choice" },
+    { "id": "cradle_cannon", "name": "Cradle Cannon", "category": "cannon", "damage": 85, "fire_rate": 1.2, "mag_size": 4, "reload_time": 3.2, "spread": 0.06, "bullet_speed": 800, "pierce": 2, "status": "stasis", "unlock": "biome_8_final" }
+  ]
+}
