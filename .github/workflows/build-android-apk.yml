@@ -17,7 +17,7 @@ permissions:
 env:
   GODOT_VERSION: "4.3"
   GODOT_HEADLESS_URL: "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip"
-  ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+  ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
   ANDROID_BUILD_TOOLS: "34.0.0"
   ANDROID_PLATFORM: "android-34"
   JAVA_VERSION: "17"
@@ -50,7 +50,8 @@ jobs:
       - name: Download Godot 4.3 headless Linux binary
         run: |
           mkdir -p "$RUNNER_TEMP/godot"
-          curl -fL -o "$RUNNER_TEMP/godot.zip" "$GODOT_HEADLESS_URL"
+          curl -fL --retry 3 --retry-delay 2 -o "$RUNNER_TEMP/godot.zip" "$GODOT_HEADLESS_URL"
+          test -s "$RUNNER_TEMP/godot.zip"
           unzip -o "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
           chmod +x "$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64"
           echo "GODOT_BIN=$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64" >> "$GITHUB_ENV"
@@ -61,32 +62,30 @@ jobs:
       - name: Install Android SDK command-line tools
         run: |
           mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
-          curl -fL "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" -o "$RUNNER_TEMP/cmdline-tools.zip"
+          curl -fL --retry 3 --retry-delay 2 \
+            "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" \
+            -o "$RUNNER_TEMP/cmdline-tools.zip"
+          test -s "$RUNNER_TEMP/cmdline-tools.zip"
           unzip -o "$RUNNER_TEMP/cmdline-tools.zip" -d "$RUNNER_TEMP/cmdline-tools"
           mv "$RUNNER_TEMP/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
 
       - name: Accept SDK licenses and install platform/build-tools
         run: |
-          # Feed "yes" to auto-accept all SDK licenses. The pipeline exit code
-          # reflects the sdkmanager status; `|| true` is intentionally NOT used
-          # so a license-accept failure blocks the build.
-          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1
           "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
+            --sdk_root="$ANDROID_SDK_ROOT" \
             "platform-tools" \
-            "platforms;$ANDROID_PLATFORM" \
-            "build-tools;$ANDROID_BUILD_TOOLS"
+            "platforms;android-34" \
+            "build-tools;34.0.0"
 
       - name: Install Godot Android export templates
         run: |
-          # Godot 4 does NOT auto-download export templates in headless mode.
-          # Explicitly download and extract the official 4.3-stable export
-          # templates into the editor's expected templates directory.
           TEMPLATES_URL="https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz"
           TEMPLATES_DIR="$HOME/.local/share/godot/export_templates/4.3.stable"
           mkdir -p "$TEMPLATES_DIR"
-          curl -fL -o "$RUNNER_TEMP/export_templates.tpz" "$TEMPLATES_URL"
-          # The .tpz is a zip; extract and move the inner templates/* into place.
+          curl -fL --retry 3 --retry-delay 2 -o "$RUNNER_TEMP/export_templates.tpz" "$TEMPLATES_URL"
+          test -s "$RUNNER_TEMP/export_templates.tpz"
           unzip -o "$RUNNER_TEMP/export_templates.tpz" -d "$RUNNER_TEMP/export_templates_extract"
           if [ -d "$RUNNER_TEMP/export_templates_extract/templates" ]; then
             cp -r "$RUNNER_TEMP/export_templates_extract/templates/." "$TEMPLATES_DIR/"
@@ -95,7 +94,6 @@ jobs:
           else
             cp -r "$RUNNER_TEMP/export_templates_extract/." "$TEMPLATES_DIR/"
           fi
-          # Confirm the Android export template is present before exporting.
           test -f "$TEMPLATES_DIR/android_debug.apk" || { echo "::error::Android export template (android_debug.apk) not found in $TEMPLATES_DIR"; exit 1; }
           echo "Android export templates installed at $TEMPLATES_DIR"
 
@@ -103,72 +101,85 @@ jobs:
         run: |
           python3 tools/asset_gen/generate_pbr_assets.py
 
+      - name: Validate scripts and scenes (import/parse check)
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path . --editor --quit --import \
+            2>&1 | tee godot-import.log
+          if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+            echo "::error::Godot import failed"
+            exit 1
+          fi
+          if grep -E "SCRIPT ERROR|Parse Error|Compile Error|Failed to load script|Failed to instantiate an autoload|Failed to create an autoload|Cannot export project" godot-import.log; then
+            echo "::error::Godot reported script or project errors"
+            grep -E "SCRIPT ERROR|Parse Error|Compile Error|Failed to load script|Failed to instantiate an autoload|Failed to create an autoload|Cannot export project" godot-import.log
+            exit 1
+          fi
+          echo "::notice::Import / parse check passed with no script errors"
+
       - name: Run headless test suite (30 endings, Gunsmith, physics, offline rules)
         run: |
-          set -o pipefail
-          "$GODOT_BIN" --headless --path . --script res://tests/test_runner.gd
-          TEST_EXIT=$?
-          if [ "$TEST_EXIT" -ne 0 ]; then
-            echo "::error::Test suite failed with exit code $TEST_EXIT"
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path . --script res://tests/test_runner.gd \
+            2>&1 | tee godot-test.log
+          if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+            echo "::error::Godot test runner failed"
             exit 1
           fi
-          echo "::notice::Test suite passed"
-
-      - name: Validate scripts and scenes (import check)
-        run: |
-          set -o pipefail
-          "$GODOT_BIN" --headless --path . --editor --quit --import
-          IMPORT_EXIT=$?
-          if [ "$IMPORT_EXIT" -ne 0 ]; then
-            echo "::error::Import / parse check failed with exit code $IMPORT_EXIT"
+          if grep -E "SCRIPT ERROR|Parse Error|Compile Error|FAILED|failed|Failed to" godot-test.log; then
+            echo "::error::Test runner reported an engine or test failure"
+            grep -E "SCRIPT ERROR|Parse Error|Compile Error|FAILED|failed|Failed to" godot-test.log
             exit 1
           fi
-          echo "::notice::Import / parse check passed"
+          echo "::notice::Test suite passed with no engine errors"
 
       - name: Verify export preset exists
         run: |
-          if ! grep -q 'name="Android (100% Offline APK)"' export_presets.cfg; then
+          if ! grep -Fx 'name="Android (100% Offline APK)"' export_presets.cfg; then
             echo "::error::Preset 'Android (100% Offline APK)' not found in export_presets.cfg"
             exit 1
           fi
           echo "::notice::Preset 'Android (100% Offline APK)' found in export_presets.cfg"
 
+      - name: Scan project for forbidden network permissions
+        run: |
+          if grep -R -n -E "INTERNET|ACCESS_NETWORK_STATE|android.permission.INTERNET|android.permission.ACCESS_NETWORK_STATE" \
+            export_presets.cfg project.godot src assets data .github 2>/dev/null; then
+            echo "::error::Network permission or network-access reference detected"
+            exit 1
+          fi
+          echo "::notice::No network permission references found in project"
+
       - name: Export Android APK (debug)
         run: |
-          set -o pipefail
+          set -euo pipefail
           mkdir -p build
-          # Use the exact preset name defined in export_presets.cfg.
           "$GODOT_BIN" --headless \
             --path . \
             --export-debug "Android (100% Offline APK)" \
-            "build/$APK_NAME"
-          EXPORT_EXIT=$?
-          if [ "$EXPORT_EXIT" -ne 0 ]; then
-            echo "::error::Android export failed with exit code $EXPORT_EXIT"
+            "build/$APK_NAME" \
+            2>&1 | tee godot-export.log
+          if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+            echo "::error::Godot export failed"
             exit 1
           fi
-          echo "::notice::Android export completed successfully"
+          if grep -E "SCRIPT ERROR|Parse Error|Compile Error|Cannot export project|Failed to load script|Failed to instantiate an autoload|Failed to create an autoload" godot-export.log; then
+            echo "::error::Godot export reported script or project errors"
+            grep -E "SCRIPT ERROR|Parse Error|Compile Error|Cannot export project|Failed to load script|Failed to instantiate an autoload|Failed to create an autoload" godot-export.log
+            exit 1
+          fi
+          echo "::notice::Android export completed with no errors"
 
       - name: Verify APK exists and is valid
         run: |
           ls -la build/
-          if [ ! -f "build/$APK_NAME" ]; then
-            echo "::error::APK file build/$APK_NAME not found"
-            exit 1
-          fi
-          # Verify APK zip integrity.
-          unzip -t "build/$APK_NAME" > /dev/null 2>&1
-          ZIP_EXIT=$?
-          if [ "$ZIP_EXIT" -ne 0 ]; then
-            echo "::error::APK zip integrity check failed with exit code $ZIP_EXIT"
-            exit 1
-          fi
-          echo "::notice::APK exists and zip integrity verified"
+          test -f "build/$APK_NAME"
+          test -s "build/$APK_NAME"
+          unzip -t "build/$APK_NAME"
+          echo "::notice::APK exists, is non-empty, and zip integrity verified"
 
       - name: Scan APK for offline permission compliance
         run: |
-          # Extract AndroidManifest.xml from the APK and verify no network
-          # permissions are present (the game is 100% offline).
           APK_MANIFEST_TMP=$(mktemp -d)
           unzip -p "build/$APK_NAME" AndroidManifest.xml > "$APK_MANIFEST_TMP/AndroidManifest.xml" 2>/dev/null
           if [ ! -s "$APK_MANIFEST_TMP/AndroidManifest.xml" ]; then

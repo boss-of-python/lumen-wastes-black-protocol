@@ -66,19 +66,9 @@ func _update_gamepad_detection() -> void:
 	_using_gamepad = Input.get_connected_joypads().size() > 0
 
 func _read_touch_vectors() -> void:
-	var count := DisplayServer.get_touch_count()
-	if count <= 0:
-		_left_touch_id = -1
-		_right_touch_id = -1
-		_left_vector = Vector2.ZERO
-		_right_vector = Vector2.ZERO
-		return
-	if _left_touch_id >= 0 and _left_touch_id < count:
-		var pos: Vector2 = DisplayServer.get_touch_position_in_view(_left_touch_id)
-		_left_vector = _stick_vector(pos, _left_origin)
-	if _right_touch_id >= 0 and _right_touch_id < count:
-		var pos: Vector2 = DisplayServer.get_touch_position_in_view(_right_touch_id)
-		_right_vector = _stick_vector(pos, _right_origin)
+	# Screen-touch vectors are updated by _input().
+	# Keep this function as a no-op unless additional touch state is available.
+	pass
 
 func _stick_vector(point: Vector2, origin: Vector2) -> Vector2:
 	var offset := point - origin
