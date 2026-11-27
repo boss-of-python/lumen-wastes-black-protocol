@@ -60,7 +60,7 @@ func switch_stem(stem_name: String, fade_time: float = 1.2) -> void:
 		return
 	if stem_name == _current_stem and not _fade_active:
 		return
-	var old_stream := _stems.get(_current_stem, null)
+	var old_stream: AudioStream = _stems.get(_current_stem, null)
 	var new_stream := _stems[stem_name] as AudioStreamWAV
 	if new_stream == null:
 		return
@@ -159,7 +159,7 @@ func _synthesize_sfx(sfx_type: String) -> AudioStreamWAV:
 		else:
 			phase += 2.0 * PI * freq / float(sr)
 			val = sin(phase) * amp
-		var s := clamp(int(val * 24000.0), -32768, 32767)
+		var s: int = clamp(int(val * 24000.0), -32768, 32767)
 		# 16-bit little-endian PCM. pack_half() is Godot 3 only; build the
 		# two bytes directly from the signed 16-bit sample (low byte first).
 		var u: int = s & 0xFFFF
