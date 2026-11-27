@@ -20,7 +20,7 @@ func set_velocity(new_velocity: Vector2) -> void:
 func _on_body_entered(body: Node) -> void:
 	if body.has_group("player") or body.has_group("enemy"):
 		if body.has_method("take_damage"):
-			body.take_damage(bash_damage)
+			body.call("take_damage", bash_damage)
 	if AudioDirector != null:
 		AudioDirector.play_sfx("explosion")
 	queue_free()

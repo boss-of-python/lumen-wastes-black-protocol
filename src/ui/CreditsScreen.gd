@@ -17,7 +17,7 @@ const BILLING_LINES: Array[String] = [
 @onready var _skip_hint: Label = $SkipHint
 var _ending_id: int = -1
 var _roll_position: float = 0.0
-var _skip_timer: Timer
+var _skip_timer: Timer = null
 var _finished := false
 signal credits_finished()
 

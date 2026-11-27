@@ -12,10 +12,8 @@ speed = 420.0
 bash_damage = 120.0
 
 [node name="Sprite" type="Sprite2D" parent="."]
-offset_left = -12.0
-offset_top = -12.0
-offset_right = 12.0
-offset_bottom = 12.0
+centered = true
+offset = Vector2(0, 0)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_rocket")

@@ -62,19 +62,22 @@ func _execute_bash(target: Node) -> void:
 
 	# Player gets a 360-degree launch — vertical boost plus horizontal push.
 	if player.has_method("reset_air_ability"):
-		player.reset_air_ability()
-	player.velocity = Vector2(dir.x * 240.0, PLAYER_PROPULSION_VY)
+		player.call("reset_air_ability")
+	if player.has_method("set_velocity"):
+		player.call("set_velocity", Vector2(dir.x * 240.0, PLAYER_PROPULSION_VY))
+	else:
+		player.velocity = Vector2(dir.x * 240.0, PLAYER_PROPULSION_VY)
 
 	# Fling the target in the opposite vector.
 	if target.has_method("apply_bash_launch"):
-		target.apply_bash_launch(-dir)
+		target.call("apply_bash_launch", -dir)
 	elif target.has_method("take_damage"):
-		target.take_damage(BASH_DAMAGE)
+		target.call("take_damage", BASH_DAMAGE)
 
 	# Boss rockets are flung at 1.45x speed and deal bash damage on impact.
 	if target.has_group("boss_rocket") and target.has_method("set_velocity"):
 		var rocket_speed: float = target.get("speed") if target.has_method("get") else 600.0
-		target.set_velocity(-dir * rocket_speed * ROCKET_SPEED_MULTIPLIER)
+		target.call("set_velocity", -dir * rocket_speed * ROCKET_SPEED_MULTIPLIER)
 		target.set("bash_damage", BASH_DAMAGE)
 
 	# Trigger TimeManager slow-mo.

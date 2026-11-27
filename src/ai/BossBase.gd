@@ -74,13 +74,16 @@ func _update_state(delta: float) -> void:
 	if _state == PHASE_STATE_TELEGRAPH:
 		if _telegraph_timer <= 0.0:
 			_execute_attack()
+		move_and_slide()
 		return
 	if _state == PHASE_STATE_ATTACK:
 		if _attack_timer <= 0.0:
 			_change_state(PHASE_STATE_IDLE)
+		move_and_slide()
 		return
 	if _attack_timer <= 0.0:
 		_begin_telegraph()
+	move_and_slide()
 
 func _begin_telegraph() -> void:
 	var attacks: Array = boss_data.get("attacks", [])
@@ -109,7 +112,7 @@ func _spawn_rockets(count: int) -> void:
 		if rocket != null:
 			get_tree().current_scene.add_child(rocket)
 			rocket.global_position = global_position + Vector2(randf_range(-30.0, 30.0), -40.0)
-			rocket.set_velocity(Vector2(facing * ROCKET_SPEED, 120.0))
+			rocket.call("set_velocity", Vector2(facing * ROCKET_SPEED, 120.0))
 
 func _make_rocket() -> Node:
 	var rocket_scene := load("res://src/physics/BossRocket.tscn") as PackedScene
@@ -127,9 +130,9 @@ func _summon_minions(faction: String, count: int) -> void:
 		return
 	for i in count:
 		var agent := agent_scene.instantiate() as CharacterBody2D
-		agent.faction = faction
-		agent.max_hp = hp * 0.1
-		agent.hp = agent.max_hp
+		agent.set("faction", faction)
+		agent.set("max_hp", hp * 0.1)
+		agent.set("hp", hp * 0.1)
 		get_tree().current_scene.add_child(agent)
 		agent.global_position = global_position + Vector2(randf_range(-80.0, 80.0), 20.0)
 

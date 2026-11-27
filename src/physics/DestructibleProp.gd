@@ -67,11 +67,11 @@ func explode_barrel(origin: Node) -> void:
 	for node in tree.get_nodes_in_group("enemy"):
 		if global_position.distance_to(node.global_position) <= BARREL_BLAST_RADIUS:
 			if node.has_method("take_damage"):
-				node.take_damage(BARREL_BLAST_DAMAGE)
+				node.call("take_damage", BARREL_BLAST_DAMAGE)
 	for node in tree.get_nodes_in_group("player"):
 		if global_position.distance_to(node.global_position) <= BARREL_BLAST_RADIUS:
 			if node.has_method("take_damage"):
-				node.take_damage(BARREL_BLAST_DAMAGE)
+				node.call("take_damage", BARREL_BLAST_DAMAGE)
 
 	# Daisy-chain: propagate to linked barrels.
 	for linked in linked_barrels:
@@ -80,7 +80,7 @@ func explode_barrel(origin: Node) -> void:
 				if linked.has_method("explode_barrel"):
 					var delay := float(global_position.distance_to(linked.global_position)) / 200.0
 					await get_tree().create_timer(delay).timeout
-					linked.explode_barrel(linked)
+					linked.call("explode_barrel", linked)
 
 	if AudioDirector != null:
 		AudioDirector.play_sfx("explosion")

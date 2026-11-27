@@ -119,7 +119,7 @@ func _chase_or_attack(delta: float) -> void:
 		velocity = Vector2.ZERO
 		_face_target()
 		if _fire_cooldown <= 0.0 and _target.has_method("take_damage"):
-			_target.take_damage(damage)
+			_target.call("take_damage", damage)
 			_fire_cooldown = 0.8
 
 func _move_towards(target_pos: Vector2, delta: float) -> void:

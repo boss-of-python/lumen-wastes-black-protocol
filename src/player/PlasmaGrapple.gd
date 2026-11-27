@@ -1,6 +1,7 @@
 extends RayCast2D
 
 const ANCHOR_LAYER: int = 6
+const ANCHOR_LAYER_MASK: int = 1 << (ANCHOR_LAYER - 1)
 const GRAPPLE_RANGE: float = 480.0
 const GRAPPLE_SPEED: float = 1400.0
 const GRAPPLE_COOLDOWN: float = 0.5
@@ -15,7 +16,7 @@ signal grapple_released()
 signal ultra_zip_performed(target: Node)
 
 func _ready() -> void:
-	collision_mask = 1 << (ANCHOR_LAYER - 1)
+	collision_mask = ANCHOR_LAYER_MASK
 	set_process(true)
 
 func _process(delta: float) -> void:
@@ -60,9 +61,16 @@ func ultra_zip_to_enemy(target: Node) -> bool:
 	_anchor = target as Node2D
 	_grappling = true
 	ultra_zip_performed.emit(target)
-	player.reset_air_ability()
-	player.velocity = (_anchor.global_position - player.global_position).normalized() * ULTRA_ZIP_SPEED
-	AudioDirector.play_sfx("dash")
+	if player.has_method("reset_air_ability"):
+		player.call("reset_air_ability")
+	# Snap the player toward the enemy at high speed.
+	var dir := (target.global_position - player.global_position).normalized()
+	if player.has_method("set_velocity"):
+		player.call("set_velocity", dir * ULTRA_ZIP_SPEED)
+	else:
+		player.velocity = dir * ULTRA_ZIP_SPEED
+	if AudioDirector != null:
+		AudioDirector.play_sfx("dash")
 	return true
 
 func is_grappling() -> bool:

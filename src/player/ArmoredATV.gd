@@ -85,4 +85,4 @@ func aim_turret(world_point: Vector2) -> void:
 func take_damage(amount: float) -> void:
 	var player := get_tree().get_first_node_in_group("player")
 	if player != null and player.has_method("take_damage"):
-		player.take_damage(amount * 0.5)
+		player.call("take_damage", amount * 0.5)
