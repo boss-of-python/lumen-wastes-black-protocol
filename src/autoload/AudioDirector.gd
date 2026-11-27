@@ -125,22 +125,30 @@ func _synthesize_sfx(sfx_type: String) -> AudioStreamWAV:
 	var freq := 220.0
 	var decay := 6.0
 	match sfx_type:
-		& "shot":
-			freq = 180.0; decay = 14.0
-		& "melee":
-			freq = 140.0; decay = 10.0
-		& "explosion":
-			freq = 70.0; decay = 8.0
-		& "jump":
-			freq = 440.0; decay = 12.0
-		& "dash":
-			freq = 620.0; decay = 16.0
-		& "pickup":
-			freq = 880.0; decay = 10.0
-		& "radio":
-			freq = 320.0; decay = 6.0
-		& _:
-			freq = 220.0; decay = 6.0
+		"shot":
+			freq = 180.0
+			decay = 14.0
+		"melee":
+			freq = 140.0
+			decay = 10.0
+		"explosion":
+			freq = 70.0
+			decay = 8.0
+		"jump":
+			freq = 440.0
+			decay = 12.0
+		"dash":
+			freq = 620.0
+			decay = 16.0
+		"pickup":
+			freq = 880.0
+			decay = 10.0
+		"radio":
+			freq = 320.0
+			decay = 6.0
+		_:
+			freq = 220.0
+			decay = 6.0
 	var phase := 0.0
 	for i in len:
 		var t := float(i) / float(sr)

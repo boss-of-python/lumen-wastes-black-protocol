@@ -22,11 +22,8 @@ func setup_input_actions() -> void:
 	_add_key_action("move_left", KEY_A)
 	_add_key_action("move_right", KEY_RIGHT)
 	_add_key_action("move_right", KEY_D)
-	# Left-stick axes for gamepad movement.
-	_add_axis_event("move_left", JOY_AXIS_LEFT_X, -1.0)
-	_add_axis_event("move_right", JOY_AXIS_LEFT_X, 1.0)
-	_add_axis_event("move_up", JOY_AXIS_LEFT_Y, -1.0)
-	_add_axis_event("move_down", JOY_AXIS_LEFT_Y, 1.0)
+	_add_key_action("move_up", KEY_UP)
+	_add_key_action("move_down", KEY_DOWN)
 	_add_key_action("jump", KEY_SPACE)
 	_add_key_action("dash", KEY_SHIFT)
 	_add_key_action("shoot", KEY_W)
@@ -46,12 +43,11 @@ func setup_input_actions() -> void:
 	_add_key_action("focus", KEY_F)
 	_add_key_action("vehicle_boost", KEY_B)
 	_add_key_action("ui_cancel", KEY_ESCAPE)
-	# Right-stick aim/fire axes for gamepad twin-stick control.
-	# Gamepad Y axis points down, so "up" maps to the negative Y value.
-	_add_axis_event("aim_left", JOY_AXIS_RIGHT_X, -1.0)
-	_add_axis_event("aim_right", JOY_AXIS_RIGHT_X, 1.0)
-	_add_axis_event("aim_up", JOY_AXIS_RIGHT_Y, -1.0)
-	_add_axis_event("aim_down", JOY_AXIS_RIGHT_Y, 1.0)
+	# Aim directions via arrow keys for twin-stick-style control.
+	_add_key_action("aim_left", KEY_LEFT)
+	_add_key_action("aim_right", KEY_RIGHT)
+	_add_key_action("aim_up", KEY_UP)
+	_add_key_action("aim_down", KEY_DOWN)
 
 func _add_key_action(action_name: String, keycode: int) -> void:
 	if not InputMap.has_action(action_name):
@@ -65,14 +61,6 @@ func _add_mouse_button_action(action_name: String, button_index: int) -> void:
 		InputMap.add_action(action_name)
 	var event := InputEventMouseButton.new()
 	event.button_index = button_index
-	InputMap.action_add_event(action_name, event)
-
-func _add_axis_event(action_name: String, axis: int, axis_value: float) -> void:
-	if not  InputMap.has_action(action_name):
-		InputMap.add_action(action_name)
-	var event := InputEventJoypadAxis.new()
-	event.axis = axis
-	event.axis_value = axis_value
 	InputMap.action_add_event(action_name, event)
 
 # ---------------------------------------------------------------------------
@@ -125,13 +113,13 @@ func _write_slot_file(slot: int, data: Dictionary) -> Error:
 	if not DirAccess.dir_exists_absolute(dir):
 		var d := DirAccess.open("user://")
 		if d == null:
-			return ERR_CANNOT_OPEN
+			return ERR_CANT_OPEN
 		var mk_err := d.make_dir_recursive(dir.trim_prefix("user://"))
 		if mk_err != OK:
 			return mk_err
 	var f := FileAccess.open(path, FileAccess.WRITE)
 	if f == null:
-		return ERR_CANNOT_OPEN
+		return ERR_CANT_OPEN
 	f.store_var(data)
 	var err := f.get_error()
 	f.close()
@@ -178,7 +166,7 @@ func delete_slot(slot: int) -> Error:
 	if FileAccess.file_exists(_slot_path(slot)):
 		var f := FileAccess.open(_slot_path(slot), FileAccess.WRITE)
 		if f == null:
-			return ERR_CANNOT_OPEN
+			return ERR_CANT_OPEN
 		f.close()
 	_slots[slot] = _blank_slot(slot)
 	return OK
