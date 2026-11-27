@@ -17,7 +17,6 @@ permissions:
 env:
   GODOT_VERSION: "4.3"
   GODOT_HEADLESS_URL: "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip"
-  ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
   ANDROID_BUILD_TOOLS: "34.0.0"
   ANDROID_PLATFORM: "android-34"
   JAVA_VERSION: "17"
@@ -61,6 +60,8 @@ jobs:
 
       - name: Install Android SDK command-line tools
         run: |
+          # Use RUNNER_TEMP so the SDK lives outside the Godot project dir.
+          export ANDROID_SDK_ROOT="$RUNNER_TEMP/android-sdk"
           mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
           curl -fL --retry 3 --retry-delay 2 \
             "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" \
