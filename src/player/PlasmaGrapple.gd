@@ -64,9 +64,9 @@ func ultra_zip_to_enemy(target: Node) -> bool:
 	if player.has_method("reset_air_ability"):
 		player.call("reset_air_ability")
 	# Snap the player toward the enemy at high speed.
-	var dir := (target.global_position - player.global_position).normalized()
-	if player.has_method("set_velocity"):
-		player.call("set_velocity", dir * ULTRA_ZIP_SPEED)
+	var dir: Vector2 = (target.global_position - player.global_position).normalized()
+	if player.has_method("set_external_velocity"):
+		player.call("set_external_velocity", dir * ULTRA_ZIP_SPEED)
 	else:
 		player.velocity = dir * ULTRA_ZIP_SPEED
 	if AudioDirector != null:

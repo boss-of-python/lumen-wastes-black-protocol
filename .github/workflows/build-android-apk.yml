@@ -50,7 +50,7 @@ jobs:
       - name: Download Godot 4.3 headless Linux binary
         run: |
           mkdir -p "$RUNNER_TEMP/godot"
-          curl -sSL -o "$RUNNER_TEMP/godot.zip" "$GODOT_HEADLESS_URL"
+          curl -fL -o "$RUNNER_TEMP/godot.zip" "$GODOT_HEADLESS_URL"
           unzip -o "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
           chmod +x "$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64"
           echo "GODOT_BIN=$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64" >> "$GITHUB_ENV"
@@ -61,14 +61,17 @@ jobs:
       - name: Install Android SDK command-line tools
         run: |
           mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
-          LATEST_CMDLINE=$(curl -sSL "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" -o "$RUNNER_TEMP/cmdline-tools.zip")
+          curl -fL "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" -o "$RUNNER_TEMP/cmdline-tools.zip"
           unzip -o "$RUNNER_TEMP/cmdline-tools.zip" -d "$RUNNER_TEMP/cmdline-tools"
           mv "$RUNNER_TEMP/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
 
       - name: Accept SDK licenses and install platform/build-tools
         run: |
-          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+          # Feed "yes" to auto-accept all SDK licenses. The pipeline exit code
+          # reflects the sdkmanager status; `|| true` is intentionally NOT used
+          # so a license-accept failure blocks the build.
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1
           "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
             "platform-tools" \
             "platforms;$ANDROID_PLATFORM" \
@@ -82,7 +85,7 @@ jobs:
           TEMPLATES_URL="https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz"
           TEMPLATES_DIR="$HOME/.local/share/godot/export_templates/4.3.stable"
           mkdir -p "$TEMPLATES_DIR"
-          curl -sSL -o "$RUNNER_TEMP/export_templates.tpz" "$TEMPLATES_URL"
+          curl -fL -o "$RUNNER_TEMP/export_templates.tpz" "$TEMPLATES_URL"
           # The .tpz is a zip; extract and move the inner templates/* into place.
           unzip -o "$RUNNER_TEMP/export_templates.tpz" -d "$RUNNER_TEMP/export_templates_extract"
           if [ -d "$RUNNER_TEMP/export_templates_extract/templates" ]; then
@@ -102,27 +105,85 @@ jobs:
 
       - name: Run headless test suite (30 endings, Gunsmith, physics, offline rules)
         run: |
+          set -o pipefail
           "$GODOT_BIN" --headless --path . --script res://tests/test_runner.gd
+          TEST_EXIT=$?
+          if [ "$TEST_EXIT" -ne 0 ]; then
+            echo "::error::Test suite failed with exit code $TEST_EXIT"
+            exit 1
+          fi
+          echo "::notice::Test suite passed"
 
       - name: Validate scripts and scenes (import check)
         run: |
-          # Re-import all resources; this parses every GDScript file and scene
-          # and fails the step if any script or scene has errors.
+          set -o pipefail
           "$GODOT_BIN" --headless --path . --editor --quit --import
+          IMPORT_EXIT=$?
+          if [ "$IMPORT_EXIT" -ne 0 ]; then
+            echo "::error::Import / parse check failed with exit code $IMPORT_EXIT"
+            exit 1
+          fi
+          echo "::notice::Import / parse check passed"
+
+      - name: Verify export preset exists
+        run: |
+          if ! grep -q 'name="Android (100% Offline APK)"' export_presets.cfg; then
+            echo "::error::Preset 'Android (100% Offline APK)' not found in export_presets.cfg"
+            exit 1
+          fi
+          echo "::notice::Preset 'Android (100% Offline APK)' found in export_presets.cfg"
 
       - name: Export Android APK (debug)
         run: |
+          set -o pipefail
           mkdir -p build
           # Use the exact preset name defined in export_presets.cfg.
           "$GODOT_BIN" --headless \
             --path . \
             --export-debug "Android (100% Offline APK)" \
             "build/$APK_NAME"
+          EXPORT_EXIT=$?
+          if [ "$EXPORT_EXIT" -ne 0 ]; then
+            echo "::error::Android export failed with exit code $EXPORT_EXIT"
+            exit 1
+          fi
+          echo "::notice::Android export completed successfully"
 
-      - name: Verify APK exists
+      - name: Verify APK exists and is valid
         run: |
           ls -la build/
-          test -f "build/$APK_NAME"
+          if [ ! -f "build/$APK_NAME" ]; then
+            echo "::error::APK file build/$APK_NAME not found"
+            exit 1
+          fi
+          # Verify APK zip integrity.
+          unzip -t "build/$APK_NAME" > /dev/null 2>&1
+          ZIP_EXIT=$?
+          if [ "$ZIP_EXIT" -ne 0 ]; then
+            echo "::error::APK zip integrity check failed with exit code $ZIP_EXIT"
+            exit 1
+          fi
+          echo "::notice::APK exists and zip integrity verified"
+
+      - name: Scan APK for offline permission compliance
+        run: |
+          # Extract AndroidManifest.xml from the APK and verify no network
+          # permissions are present (the game is 100% offline).
+          APK_MANIFEST_TMP=$(mktemp -d)
+          unzip -p "build/$APK_NAME" AndroidManifest.xml > "$APK_MANIFEST_TMP/AndroidManifest.xml" 2>/dev/null
+          if [ ! -s "$APK_MANIFEST_TMP/AndroidManifest.xml" ]; then
+            echo "::error::Could not extract AndroidManifest.xml from APK"
+            rm -rf "$APK_MANIFEST_TMP"
+            exit 1
+          fi
+          if grep -qi 'android.permission.INTERNET\|android.permission.ACCESS_NETWORK_STATE\|android.permission.ACCESS_WIFI_STATE\|android.permission.CHANGE_WIFI_STATE\|android.permission.CHANGE_NETWORK_STATE' "$APK_MANIFEST_TMP/AndroidManifest.xml"; then
+            echo "::error::APK contains forbidden network permissions (offline lock violated)"
+            cat "$APK_MANIFEST_TMP/AndroidManifest.xml"
+            rm -rf "$APK_MANIFEST_TMP"
+            exit 1
+          fi
+          rm -rf "$APK_MANIFEST_TMP"
+          echo "::notice::No network permissions found in APK manifest (offline lock verified)"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

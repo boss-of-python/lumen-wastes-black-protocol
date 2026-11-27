@@ -124,22 +124,22 @@ func _synthesize_sfx(sfx_type: String) -> AudioStreamWAV:
 	rng.randomize()
 	var freq := 220.0
 	var decay := 6.0
-	switch sfx_type:
-		case "shot":
+	match sfx_type:
+		& "shot":
 			freq = 180.0; decay = 14.0
-		case "melee":
+		& "melee":
 			freq = 140.0; decay = 10.0
-		case "explosion":
+		& "explosion":
 			freq = 70.0; decay = 8.0
-		case "jump":
+		& "jump":
 			freq = 440.0; decay = 12.0
-		case "dash":
+		& "dash":
 			freq = 620.0; decay = 16.0
-		case "pickup":
+		& "pickup":
 			freq = 880.0; decay = 10.0
-		case "radio":
+		& "radio":
 			freq = 320.0; decay = 6.0
-		case _:
+		& _:
 			freq = 220.0; decay = 6.0
 	var phase := 0.0
 	for i in len:
@@ -153,10 +153,10 @@ func _synthesize_sfx(sfx_type: String) -> AudioStreamWAV:
 			val = sin(phase) * amp
 		var s := clamp(int(val * 24000.0), -32768, 32767)
 		# 16-bit little-endian PCM. pack_half() is Godot 3 only; build the
-		# two bytes directly from the signed 16-bit sample.
+		# two bytes directly from the signed 16-bit sample (low byte first).
 		var u: int = s & 0xFFFF
-		buf[i * 2] = (u >> 8) & 0xFF
-		buf[i * 2 + 1] = u & 0xFF
+		buf[i * 2] = u & 0xFF
+		buf[i * 2 + 1] = (u >> 8) & 0xFF
 	stream.data = buf
 	stream.format = AudioStreamWAV.FORMAT_16_BITS
 	stream.mix_rate = sr

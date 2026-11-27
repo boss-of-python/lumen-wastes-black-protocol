@@ -155,7 +155,7 @@ func save_to_slot(slot: int, name: String = "", state: Dictionary = {}) -> Error
 	data["slot"] = slot
 	if name != "":
 		data["name"] = name
-	data["created_seconds"] = Time.get_ticks_msec() // 1000
+	data["created_seconds"] = int(Time.get_ticks_msec() / 1000)
 	data.merge(state)
 	var err := _write_slot_file(slot, data)
 	if err == OK:
