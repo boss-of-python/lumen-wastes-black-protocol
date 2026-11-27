@@ -1,0 +1,70 @@
+LUMEN WASTES: BLACK PROTOCOL — CI FAILURE HANDOFF FOR AI DEBUGGING
+Repository: boss-of-python/lumen-wastes-black-protocol
+Default branch: main
+Generated: 2026-11-27
+
+PURPOSE
+Use this document as a focused, copyable debugging handoff. Inspect the repository at the current commit, reproduce the failing GitHub Actions validation locally if possible, fix the root cause(s), add regression coverage, and verify the Android APK build. Do not weaken or remove CI checks to make the workflow pass.
+
+CURRENT STATUS
+- Latest observed workflow run: 45967134196 — failed.
+  https://github.com/boss-of-python/lumen-wastes-black-protocol/actions/runs/45967134196
+- Immediately preceding run: 45967005335 — failed with the same errors.
+  https://github.com/boss-of-python/lumen-wastes-black-protocol/actions/runs/45967005335
+- Workflow: Build Android APK (LUMEN WASTES: BLACK PROTOCOL)
+- Workflow file: .github/workflows/build-android-apk.yml
+- Failure occurs during Godot 4.3 headless editor import/validation, before the unit-test and APK-export stages.
+- Repository API reported 0 open issues. The PR history indicates prior build fixes were merged, but the latest import still fails.
+
+PRIMARY FAILURE — GODOT 4.3 GDSCRIPT PARSE ERRORS
+The latest run's import log reports warnings-as-errors in AudioDirector.gd:
+
+SCRIPT ERROR: Parse Error: The variable type is being inferred from a Variant value, so it will be typed as Variant. (Warning treated as error.)
+  at: GDScript::reload (res://src/autoload/AudioDirector.gd:63)
+
+SCRIPT ERROR: Parse Error: The variable type is being inferred from a Variant value, so it will be typed as Variant. (Warning treated as error.)
+  at: GDScript::reload (res://src/autoload/AudioDirector.gd:162)
+
+ERROR: Failed to load script "res://src/autoload/AudioDirector.gd" with error "Parse error".
+ERROR: Failed to create an autoload, script 'res://src/autoload/AudioDirector.gd' is not compiling.
+
+Because AudioDirector is not compiling, Godot reports dependent compile/load failures in:
+- res://src/physics/BossRocket.gd
+- res://src/physics/DestructibleProp.gd
+- res://src/physics/ElementalGrid.gd
+- res://src/physics/HangingGirder.gd
+- res://src/player/KineticBash.gd
+- res://src/player/PlasmaGrapple.gd
+
+These dependent errors may be cascading consequences of the AudioDirector autoload parse failure. Verify each only after AudioDirector is fixed; do not assume there are no additional independent issues.
+
+WORKFLOW DETAILS
+- Godot version in log: v4.3.stable.official.77dcf97d8
+- Failing command:
+  "$GODOT_BIN" --headless --path . --editor --quit --import
+- The workflow correctly detects the parse errors and exits nonzero. Preserve this strict behavior.
+- Android SDK path in log: /home/runner/work/_temp/android-sdk
+- The run does not reach test execution or APK export, so those stages are currently unverified by these failed runs.
+- A Node.js deprecation warning about `punycode` also appears during cleanup; it is not the build-stopping cause.
+
+HISTORICAL CONTEXT FROM MERGED PULL REQUESTS
+- PR #7 fixed a workflow expression issue: runner.temp is unavailable in workflow-level env; use RUNNER_TEMP inside the step and propagate ANDROID_SDK_ROOT through GITHUB_ENV.
+- PR #6 fixed numerous Godot 4.3 syntax/type/API issues and tightened workflow checks.
+- PR #5 fixed earlier Godot parse errors and Android export configuration.
+- PR #4 audited scene validity, JSON loading, audio, physics, and static typing.
+- PR #3 addressed initial workflow blockers, scenes, autoloads, and JSON loading.
+- PRs #1 and #2 established the project and Android template/build workflow.
+These are historical records, not proof the current tree is clean. Re-check the current source and latest logs.
+
+REQUIRED DEBUGGING TASKS
+1. Inspect src/autoload/AudioDirector.gd around lines 63 and 162 in the current branch/revision. Identify the expressions inferred from Variant values and provide explicit, correct Godot 4.3 types or safe conversions. Preserve the intended audio behavior; avoid broad `Variant` suppression or disabling warnings.
+2. Re-run the exact Godot 4.3 import/parse validation after the fixes. Fix any newly surfaced independent errors, including the dependent scripts if they remain after AudioDirector compiles.
+3. Run the repository's existing static validator and test suite. Determine the exact supported commands from the workflow and project; do not invent replacement tests.
+4. Verify offline requirements remain intact: no INTERNET or ACCESS_NETWORK_STATE permissions in Android export configuration, and no new networking, telemetry, ads, or cloud dependencies.
+5. Verify the Android preset still exists and export an APK. Validate that the artifact exists, is non-empty, and passes the workflow's APK integrity check.
+6. Add regression tests/checks if appropriate. Preserve strict import, test, export, and artifact validation. Do not hide errors with `|| true`, skip checks, or weaken grep/error handling.
+7. Report changed files, root cause, commands run, results, and any remaining blockers. If a check cannot be run, state why and do not claim it passed.
+
+COPYABLE PROMPT
+
+You are debugging the GitHub repository boss-of-python/lumen-wastes-black-protocol. Read AI_CI_FAILURE_HANDOFF.txt and inspect the current repository state and workflow logs. The latest Android build workflow run (45967134196) fails during Godot 4.3 headless import because src/autoload/AudioDirector.gd lines 63 and 162 infer a variable type from a Variant, and Godot treats this warning as an error. This prevents the AudioDirector autoload from compiling and is followed by load/compile failures in BossRocket.gd, DestructibleProp.gd, ElementalGrid.gd, HangingGirder.gd, KineticBash.gd, and PlasmaGrapple.gd. Fix the true root cause with correct explicit typing/conversions, then verify whether any dependent errors remain. Run the exact import validation, existing automated tests/static validation, and Android APK export. Preserve all strict CI checks and the 100% offline/no-network-permission requirement; do not suppress warnings, skip tests, or use `|| true` to force success. Add appropriate regression coverage. Summarize the root cause, changes, exact commands and their outcomes, and any remaining issues. The preceding run 45967005335 reports the same failure. Both run links and the workflow file path are listed above.
