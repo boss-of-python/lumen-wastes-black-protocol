@@ -87,7 +87,7 @@ func is_in_slow_mo() -> bool:
 # Accessors
 # ---------------------------------------------------------------------------
 func _apply_scale(scale: float) -> void:
-	if is_similar(_time_scale, scale):
+	if is_equal_approx(_time_scale, scale):
 		return
 	_time_scale = scale
 	scale_changed.emit(_time_scale)

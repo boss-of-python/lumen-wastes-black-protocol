@@ -58,8 +58,8 @@ func _crush_enemies() -> void:
 		if node.global_position.x >= global_position.x - 60.0 \
 				and node.global_position.x <= global_position.x + 60.0:
 			if node.global_position.y >= global_position.y - 10.0:
-			if node.has_method("take_damage"):
-				node.call("take_damage", GIRDDER_DAMAGE)
-		if TimeManager != null:
-			TimeManager.trigger_hit_stop(45)
+				if node.has_method("take_damage"):
+					node.call("take_damage", GIRDDER_DAMAGE)
+	if TimeManager != null:
+		TimeManager.trigger_hit_stop(45)
 	queue_free()

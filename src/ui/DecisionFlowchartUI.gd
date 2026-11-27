@@ -44,7 +44,7 @@ func _make_ending_node(ending: Dictionary) -> Button:
 	var btn := Button.new()
 	btn.custom_minimum_size = Vector2(260.0, 56.0)
 	var id: int = ending["id"]
-	var unlocked := GameState.is_ending_unlocked(id)
+	var unlocked: bool = GameState.is_ending_unlocked(id)
 	btn.text = "%d. %s" % [id, ending.get("name", "")]
 	btn.disabled = not unlocked
 	btn.modulate = Color(1.0, 0.84, 0.36) if unlocked else Color(0.4, 0.4, 0.4)

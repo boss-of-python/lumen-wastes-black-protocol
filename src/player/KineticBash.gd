@@ -55,7 +55,7 @@ func _find_bash_target() -> Node:
 	return null
 
 func _execute_bash(target: Node) -> void:
-	var dir := (player.global_position - target.global_position)
+	var dir: Vector2 = (player.global_position - target.global_position)
 	if dir.length() < 1.0:
 		dir = Vector2.UP
 	dir = dir.normalized()
@@ -63,8 +63,8 @@ func _execute_bash(target: Node) -> void:
 	# Player gets a 360-degree launch — vertical boost plus horizontal push.
 	if player.has_method("reset_air_ability"):
 		player.call("reset_air_ability")
-	if player.has_method("set_velocity"):
-		player.call("set_velocity", Vector2(dir.x * 240.0, PLAYER_PROPULSION_VY))
+	if player.has_method("set_external_velocity"):
+		player.call("set_external_velocity", Vector2(dir.x * 240.0, PLAYER_PROPULSION_VY))
 	else:
 		player.velocity = Vector2(dir.x * 240.0, PLAYER_PROPULSION_VY)
 

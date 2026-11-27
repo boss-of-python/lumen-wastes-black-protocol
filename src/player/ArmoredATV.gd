@@ -14,8 +14,8 @@ const TURN_TORQUE: float = 900.0
 @onready var _chassis: CollisionShape2D = $Chassis/CollisionShape2D if has_node("Chassis/CollisionShape2D") else null
 @onready var _front_wheel: RigidBody2D = $FrontWheel if has_node("FrontWheel") else null
 @onready var _rear_wheel: RigidBody2D = $RearWheel if has_node("RearWheel") else null
-@onready var _front_joint: WheelJoint2D = $FrontWheelJoint if has_node("FrontWheelJoint") else null
-@onready var _rear_joint: WheelJoint2D = $RearWheelJoint if has_node("RearWheelJoint") else null
+@onready var _front_joint: PinJoint2D = $FrontWheelJoint if has_node("FrontWheelJoint") else null
+@onready var _rear_joint: PinJoint2D = $RearWheelJoint if has_node("RearWheelJoint") else null
 @onready var _turret: Node2D = $RoofTurret if has_node("RoofTurret") else null
 @onready var _boost_bar: ProgressBar = $BoostBar if has_node("BoostBar") else null
 
@@ -25,10 +25,8 @@ var _is_boosting: bool = false
 func _ready() -> void:
 	set_physics_process(true)
 	if _front_joint != null:
-		_front_joint.wheel_radius = WHEEL_RADIUS
 		_front_joint.local_a = Vector2(-WHEEL_BASE / 2.0, WHEEL_RADIUS)
 	if _rear_joint != null:
-		_rear_joint.wheel_radius = WHEEL_RADIUS
 		_rear_joint.local_a = Vector2(WHEEL_BASE / 2.0, WHEEL_RADIUS)
 	add_to_group("vehicle")
 

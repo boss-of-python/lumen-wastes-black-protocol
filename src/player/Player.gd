@@ -188,12 +188,13 @@ func _start_dash() -> void:
 	_dash_timer = PHASE_DASH_DURATION
 	_iframes = PHASE_DASH_IFRAMES
 	_dash_cooldown = PHASE_DASH_COOLDOWN
-	set_velocity(Vector2(_facing * PHASE_DASH_SPEED, _velocity.y))
+	set_external_velocity(Vector2(_facing * PHASE_DASH_SPEED, _velocity.y))
 	dash_executed.emit()
 
 # Public: set velocity and lock it so _handle_movement won't overwrite it
 # this frame (used by dash, Kinetic Bash launch, and Grapple zip).
-func set_velocity(vel: Vector2) -> void:
+# Named set_external_velocity to avoid overriding CharacterBody2D.set_velocity.
+func set_external_velocity(vel: Vector2) -> void:
 	_velocity = vel
 	_velocity_locked = true
 
@@ -228,7 +229,9 @@ func _update_wall_state() -> void:
 func _wall_query(offset: Vector2) -> bool:
 	var ray := RayCast2D.new()
 	ray.enabled = true
-	ray.position = global_position + offset
+	# RayCast2D position is relative to its parent (this player node),
+	# so use the offset directly rather than the global position.
+	ray.position = offset
 	ray.target_position = Vector2(offset.x * 3.0, 0.0)
 	ray.collision_mask = ~PHYSICS_LAYER_PLAYER
 	ray.disabled = false
@@ -260,10 +263,10 @@ func aim_towards(world_point: Vector2) -> void:
 	if _skeleton == null or _skeleton.get_bone_count() < 2:
 		return
 	var aim_dir := world_point - global_position
-	var bone_idx := _skeleton.find_bone("aim_bone")
+	var bone_idx: int = _skeleton.find_bone("aim_bone")
 	if bone_idx >= 0:
 		var angle := aim_dir.angle()
-		_skeleton.set_bone_transform(bone_idx, Transform2D.from_angle(angle))
+		_skeleton.set_bone_pose_rotation(bone_idx, angle)
 
 # ---------------------------------------------------------------------------
 # Combat interface
